@@ -6,14 +6,14 @@ import type { Session } from "@supabase/supabase-js";
 import type { Report } from "../types";
 import dynamic from "next/dynamic";
 
-const Map = dynamic(() => import("./components/map/MapContainer"), {
+const Map = dynamic(() => import("./components/map/mapcontainer"), {
   ssr: false,
 });
-import Navbar from "./components/layout/Navbar";
-import IconRail from "./components/layout/IconRail";
-import DetailPanel from "./components/panel/DetailPanel";
-import AuthModal from "./components/auth/AuthModal";
-import Landing from "./components/auth/Landing";
+import Navbar from "./components/layout/navbar";
+import IconRail from "./components/layout/iconrail";
+import DetailPanel from "./components/panel/detailpanel";
+import AuthModal from "./components/auth/authmodal";
+import Landing from "./components/auth/landing";
 
 export default function Home() {
   const [session, setSession] = useState<Session | null>(null);
