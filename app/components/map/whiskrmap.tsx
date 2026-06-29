@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -75,6 +75,22 @@ export default function WhiskrMap({
   const [reports, setReports] = useState<Report[]>([]);
   const [gpsPos, setGpsPos] = useState<[number, number] | null>(null);
   const [clickPos, setClickPos] = useState<[number, number] | null>(null);
+  const selectedReportRef = useRef<Report | null>(null);
+
+  useEffect(() => {
+    function handleRescueCompleted(e: Event) {
+      const { reportId } = (e as CustomEvent).detail;
+      setReports((prev) => prev.filter((r) => r.id !== reportId));
+    }
+
+    window.addEventListener("rescue-completed", handleRescueCompleted);
+    return () =>
+      window.removeEventListener("rescue-completed", handleRescueCompleted);
+  }, []);
+
+  useEffect(() => {
+    selectedReportRef.current = selectedReport;
+  }, [selectedReport]);
 
   useEffect(() => {
     async function load() {
@@ -101,14 +117,26 @@ export default function WhiskrMap({
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "reports" },
         (payload) => {
-          setReports((prev) =>
-            prev.map((r) =>
-              r.id === payload.new.id ? { ...r, ...payload.new } : r,
-            ),
-          );
+          console.log("UPDATE event:", payload.new);
+          const updated = payload.new as Report;
+          if (["rescued", "not_found", "resolved"].includes(updated.status)) {
+            setReports((prev) => prev.filter((r) => r.id !== updated.id));
+          } else {
+            setReports((prev) =>
+              prev.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)),
+            );
+            if (selectedReportRef.current?.id === updated.id) {
+              onSelectReport({
+                ...selectedReportRef.current,
+                ...updated,
+              } as Report);
+            }
+          }
         },
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("Realtime status:", status);
+      });
 
     return () => {
       supabase.removeChannel(channel);

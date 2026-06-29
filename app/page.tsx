@@ -26,6 +26,17 @@ export default function Home() {
   const [activeRailItem, setActiveRailItem] = useState<string | null>(null);
 
   useEffect(() => {
+    function handleRescueCompleted(e: Event) {
+      const { reportId } = (e as CustomEvent).detail;
+      setSelectedReport((prev) => (prev?.id === reportId ? null : prev));
+    }
+
+    window.addEventListener("rescue-completed", handleRescueCompleted);
+    return () =>
+      window.removeEventListener("rescue-completed", handleRescueCompleted);
+  }, []);
+
+  useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setLoading(false);

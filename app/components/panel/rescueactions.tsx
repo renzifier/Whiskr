@@ -44,11 +44,24 @@ export default function RescueActions({
 
   async function handleComplete(outcome: "rescued" | "not_found") {
     setLoading(true);
-    await supabase.rpc("complete_rescue", {
+    const { data, error } = await supabase.rpc("complete_rescue", {
       p_report_id: report.id,
       p_outcome: outcome,
     });
+
+    if (error) {
+      setError("failed to complete rescue");
+      setLoading(false);
+      return;
+    }
+
     setLoading(false);
+    // Manually trigger UI update since Realtime may not fire
+    window.dispatchEvent(
+      new CustomEvent("rescue-completed", {
+        detail: { reportId: report.id },
+      }),
+    );
   }
 
   async function handleRelease() {
