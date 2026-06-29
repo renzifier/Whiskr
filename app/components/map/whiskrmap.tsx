@@ -1,13 +1,44 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MapContainer, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 import { supabase } from "../../../lib/supabase/client";
 import type { Report } from "../../../types";
 import PinLayer from "./pinlayer";
 
 const DEFAULT_POS: [number, number] = [11.5754, 122.7435];
+
+function createPreviewIcon() {
+  return L.divIcon({
+    html: `<div style="
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #4A3F7A;
+      border: 3px solid white;
+      box-shadow: 0 2px 8px rgba(74,63,122,0.4);
+      animation: pulse 1.5s infinite;
+    "></div>
+    <style>
+      @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.3); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+    </style>`,
+    className: "",
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+  });
+}
 
 function RecenterMap({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap();
@@ -33,13 +64,18 @@ function ClickHandler({
 type Props = {
   onSelectReport: (report: Report) => void;
   selectedReport: Report | null;
+  onMapClick: (lat: number, lng: number) => void;
 };
 
-export default function WhiskrMap({ onSelectReport, selectedReport }: Props) {
+export default function WhiskrMap({
+  onSelectReport,
+  selectedReport,
+  onMapClick,
+}: Props) {
   const [reports, setReports] = useState<Report[]>([]);
   const [gpsPos, setGpsPos] = useState<[number, number] | null>(null);
+  const [clickPos, setClickPos] = useState<[number, number] | null>(null);
 
-  // Load existing reports
   useEffect(() => {
     async function load() {
       const { data } = await supabase
@@ -51,7 +87,6 @@ export default function WhiskrMap({ onSelectReport, selectedReport }: Props) {
     load();
   }, []);
 
-  // Realtime subscription
   useEffect(() => {
     const channel = supabase
       .channel("reports-realtime")
@@ -80,7 +115,6 @@ export default function WhiskrMap({ onSelectReport, selectedReport }: Props) {
     };
   }, []);
 
-  // GPS
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((p) => {
@@ -101,12 +135,18 @@ export default function WhiskrMap({ onSelectReport, selectedReport }: Props) {
         attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>'
       />
       {gpsPos && <RecenterMap lat={gpsPos[0]} lng={gpsPos[1]} />}
-      <ClickHandler onClick={(lat, lng) => console.log(lat, lng)} />
+      <ClickHandler
+        onClick={(lat, lng) => {
+          setClickPos([lat, lng]);
+          onMapClick(lat, lng);
+        }}
+      />
       <PinLayer
         reports={reports}
         selectedReport={selectedReport}
         onSelectReport={onSelectReport}
       />
+      {clickPos && <Marker position={clickPos} icon={createPreviewIcon()} />}
     </MapContainer>
   );
 }

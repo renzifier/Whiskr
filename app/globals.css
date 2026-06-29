@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@theme {
+:root {
   --color-lavender: #e8e6f0;
   --color-blush: #f5eef0;
   --color-plum: #4a3f7a;

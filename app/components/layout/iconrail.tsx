@@ -7,18 +7,19 @@ type Props = {
   onSelect: (item: string | null) => void;
   session: Session;
   onAuthRequired: () => void;
+  onReport: () => void;
 };
 
 const buttons = [
-  { id: "report", icon: "➕", label: "Report a cat" },
-  { id: "locate", icon: "📍", label: "Locate me" },
+  { id: "report", icon: "➕", label: "report a cat" },
+  { id: "locate", icon: "📍", label: "locate me" },
   { id: "divider1", icon: "", label: "" },
-  { id: "filter", icon: "🔧", label: "Filter" },
+  { id: "filter", icon: "🔧", label: "filter" },
   { id: "divider2", icon: "", label: "" },
-  { id: "profile", icon: "👤", label: "My reports" },
+  { id: "profile", icon: "👤", label: "my reports" },
 ];
 
-export default function IconRail({ active, onSelect }: Props) {
+export default function IconRail({ active, onSelect, onReport }: Props) {
   return (
     <div
       style={{
@@ -54,7 +55,13 @@ export default function IconRail({ active, onSelect }: Props) {
           <button
             key={btn.id}
             title={btn.label}
-            onClick={() => onSelect(active === btn.id ? null : btn.id)}
+            onClick={() => {
+              if (btn.id === "report") {
+                onReport();
+                return;
+              }
+              onSelect(active === btn.id ? null : btn.id);
+            }}
             style={{
               width: 40,
               height: 40,
