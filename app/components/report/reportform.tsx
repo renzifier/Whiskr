@@ -42,7 +42,6 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
     setLoading(true);
     setError("");
 
-    // Upload photo
     const filename = `${Date.now()}.jpg`;
     const { error: uploadError } = await supabase.storage
       .from("report-photos")
@@ -54,12 +53,10 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
       return;
     }
 
-    // Get public URL
     const { data: urlData } = supabase.storage
       .from("report-photos")
       .getPublicUrl(filename);
 
-    // Insert report
     const { error: insertError } = await supabase.from("reports").insert({
       lat,
       lng,
@@ -103,7 +100,6 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
           boxShadow: "0 8px 32px rgba(74,63,122,0.15)",
         }}
       >
-        {/* Header */}
         <div
           style={{
             padding: "20px 20px 0",
@@ -131,7 +127,6 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
         </div>
 
         <div style={{ padding: "0 20px 20px" }}>
-          {/* Photo upload */}
           <div
             onClick={() => document.getElementById("photo-input")?.click()}
             style={{
@@ -175,7 +170,6 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
             style={{ display: "none" }}
           />
 
-          {/* Cat type */}
           <p
             style={{
               fontSize: 12,
@@ -208,7 +202,6 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
             ))}
           </div>
 
-          {/* Location */}
           <p
             style={{
               fontSize: 12,
@@ -232,7 +225,6 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
             📍 {lat.toFixed(5)}, {lng.toFixed(5)}
           </div>
 
-          {/* Description */}
           <p
             style={{
               fontSize: 12,
@@ -275,7 +267,6 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
             {description.length}/300
           </p>
 
-          {/* Contact */}
           <p
             style={{
               fontSize: 12,
