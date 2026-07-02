@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 import type { Report } from "../types";
@@ -25,6 +25,9 @@ export default function Home() {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [activeRailItem, setActiveRailItem] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [filterTypes, setFilterTypes] = useState<string[]>([]);
+  const [filterStatuses, setFilterStatuses] = useState<string[]>([]);
+  const locateFnRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     function check() {
@@ -114,7 +117,6 @@ export default function Home() {
           position: "relative",
         }}
       >
-        {/* Desktop rail only */}
         {!isMobile && (
           <IconRail
             active={activeRailItem}
@@ -122,18 +124,29 @@ export default function Home() {
             session={session}
             onAuthRequired={() => setShowAuth(true)}
             onReport={() => setShowReport(true)}
+            filterTypes={filterTypes}
+            filterStatuses={filterStatuses}
+            onFilterTypes={setFilterTypes}
+            onFilterStatuses={setFilterStatuses}
+            onLocate={() => {
+              console.log("locate clicked, fn:", locateFnRef.current);
+              locateFnRef.current?.();
+            }}
           />
         )}
 
-        {/* Map + overlays */}
         <div style={{ flex: 1, position: "relative" }}>
           <Map
             onSelectReport={setSelectedReport}
             selectedReport={selectedReport}
             onMapClick={(lat, lng) => setReportPos([lat, lng])}
+            filterTypes={filterTypes}
+            filterStatuses={filterStatuses}
+            onLocate={(fn) => {
+              locateFnRef.current = fn;
+            }}
           />
 
-          {/* Mobile FAB overlaid on map */}
           {isMobile && (
             <IconRail
               active={activeRailItem}
@@ -141,10 +154,17 @@ export default function Home() {
               session={session}
               onAuthRequired={() => setShowAuth(true)}
               onReport={() => setShowReport(true)}
+              filterTypes={filterTypes}
+              filterStatuses={filterStatuses}
+              onFilterTypes={setFilterTypes}
+              onFilterStatuses={setFilterStatuses}
+              onLocate={() => {
+                console.log("locate clicked, fn:", locateFnRef.current);
+                locateFnRef.current?.();
+              }}
             />
           )}
 
-          {/* Mobile detail panel — bottom sheet inside map container */}
           {isMobile && selectedReport && (
             <div
               style={{
@@ -165,7 +185,6 @@ export default function Home() {
           )}
         </div>
 
-        {/* Desktop detail panel — right sidebar */}
         {!isMobile && selectedReport && (
           <DetailPanel
             report={selectedReport}

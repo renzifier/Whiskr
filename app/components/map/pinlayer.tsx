@@ -43,16 +43,28 @@ type Props = {
   reports: Report[];
   selectedReport: Report | null;
   onSelectReport: (report: Report) => void;
+  filterTypes: string[];
+  filterStatuses: string[];
 };
 
 export default function PinLayer({
   reports,
   selectedReport,
   onSelectReport,
+  filterTypes,
+  filterStatuses,
 }: Props) {
+  const filtered = reports.filter((r) => {
+    const typeMatch =
+      filterTypes.length === 0 || filterTypes.includes(r.cat_type);
+    const statusMatch =
+      filterStatuses.length === 0 || filterStatuses.includes(r.status);
+    return typeMatch && statusMatch;
+  });
+
   return (
     <>
-      {reports.map((report) => {
+      {filtered.map((report) => {
         const color =
           statusColors[report.status] ??
           pinColors[report.cat_type] ??

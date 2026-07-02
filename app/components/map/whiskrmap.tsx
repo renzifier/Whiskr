@@ -81,22 +81,41 @@ function ClickHandler({
   return null;
 }
 
+function MapCapture({
+  mapRef,
+}: {
+  mapRef: React.MutableRefObject<L.Map | null>;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    mapRef.current = map;
+  }, [map]);
+  return null;
+}
+
 type Props = {
   onSelectReport: (report: Report) => void;
   selectedReport: Report | null;
   onMapClick: (lat: number, lng: number) => void;
+  filterTypes: string[];
+  filterStatuses: string[];
+  onLocate: (fn: () => void) => void;
 };
 
 export default function WhiskrMap({
   onSelectReport,
   selectedReport,
   onMapClick,
+  filterTypes,
+  filterStatuses,
+  onLocate,
 }: Props) {
   const [reports, setReports] = useState<Report[]>([]);
   const [gpsPos, setGpsPos] = useState<[number, number] | null>(null);
   const [clickPos, setClickPos] = useState<[number, number] | null>(null);
   const selectedReportRef = useRef<Report | null>(null);
   const hasCentered = useRef(false);
+  const mapRef = useRef<L.Map | null>(null);
 
   const [initialCenter] = useState<[number, number]>(() => {
     if (typeof window === "undefined") return DEFAULT_POS;
@@ -186,6 +205,19 @@ export default function WhiskrMap({
     }
   }, []);
 
+  useEffect(() => {
+    console.log("registering locate fn");
+    onLocate(() => {
+      console.log("locate fn called");
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((p) => {
+          console.log("got position", p.coords);
+          mapRef.current?.setView([p.coords.latitude, p.coords.longitude], 15);
+        });
+      }
+    });
+  }, []);
+
   return (
     <MapContainer
       center={initialCenter}
@@ -199,6 +231,7 @@ export default function WhiskrMap({
         attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>'
       />
       <SaveMapPosition />
+      <MapCapture mapRef={mapRef} />
       {gpsPos && <RecenterMap lat={gpsPos[0]} lng={gpsPos[1]} />}
       <ClickHandler
         onClick={(lat, lng) => {
@@ -210,6 +243,8 @@ export default function WhiskrMap({
         reports={reports}
         selectedReport={selectedReport}
         onSelectReport={onSelectReport}
+        filterTypes={filterTypes}
+        filterStatuses={filterStatuses}
       />
       {clickPos && <Marker position={clickPos} icon={createPreviewIcon()} />}
     </MapContainer>

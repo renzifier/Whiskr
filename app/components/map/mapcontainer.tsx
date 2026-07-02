@@ -9,12 +9,18 @@ type Props = {
   onSelectReport: (report: Report) => void;
   selectedReport: Report | null;
   onMapClick: (lat: number, lng: number) => void;
+  filterTypes: string[];
+  filterStatuses: string[];
+  onLocate: (fn: () => void) => void;
 };
 
 export default function MapContainer({
   onSelectReport,
   selectedReport,
   onMapClick,
+  filterTypes,
+  filterStatuses,
+  onLocate,
 }: Props) {
   return (
     <div style={{ width: "100%", height: "100%" }}>
@@ -22,6 +28,9 @@ export default function MapContainer({
         onSelectReport={onSelectReport}
         selectedReport={selectedReport}
         onMapClick={onMapClick}
+        filterTypes={filterTypes}
+        filterStatuses={filterStatuses}
+        onLocate={onLocate}
       />
     </div>
   );
