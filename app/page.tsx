@@ -24,13 +24,22 @@ export default function Home() {
   const [reportPos, setReportPos] = useState<[number, number] | null>(null);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [activeRailItem, setActiveRailItem] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    function check() {
+      setIsMobile(window.innerWidth < 768);
+    }
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   useEffect(() => {
     function handleRescueCompleted(e: Event) {
       const { reportId } = (e as CustomEvent).detail;
       setSelectedReport((prev) => (prev?.id === reportId ? null : prev));
     }
-
     window.addEventListener("rescue-completed", handleRescueCompleted);
     return () =>
       window.removeEventListener("rescue-completed", handleRescueCompleted);
@@ -105,23 +114,59 @@ export default function Home() {
           position: "relative",
         }}
       >
-        <IconRail
-          active={activeRailItem}
-          onSelect={setActiveRailItem}
-          session={session}
-          onAuthRequired={() => setShowAuth(true)}
-          onReport={() => setShowReport(true)}
-        />
+        {/* Desktop rail only */}
+        {!isMobile && (
+          <IconRail
+            active={activeRailItem}
+            onSelect={setActiveRailItem}
+            session={session}
+            onAuthRequired={() => setShowAuth(true)}
+            onReport={() => setShowReport(true)}
+          />
+        )}
 
+        {/* Map + overlays */}
         <div style={{ flex: 1, position: "relative" }}>
           <Map
             onSelectReport={setSelectedReport}
             selectedReport={selectedReport}
             onMapClick={(lat, lng) => setReportPos([lat, lng])}
           />
+
+          {/* Mobile FAB overlaid on map */}
+          {isMobile && (
+            <IconRail
+              active={activeRailItem}
+              onSelect={setActiveRailItem}
+              session={session}
+              onAuthRequired={() => setShowAuth(true)}
+              onReport={() => setShowReport(true)}
+            />
+          )}
+
+          {/* Mobile detail panel — bottom sheet inside map container */}
+          {isMobile && selectedReport && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                zIndex: 500,
+              }}
+            >
+              <DetailPanel
+                report={selectedReport}
+                session={session}
+                onClose={() => setSelectedReport(null)}
+                onAuthRequired={() => setShowAuth(true)}
+              />
+            </div>
+          )}
         </div>
 
-        {selectedReport && (
+        {/* Desktop detail panel — right sidebar */}
+        {!isMobile && selectedReport && (
           <DetailPanel
             report={selectedReport}
             session={session}

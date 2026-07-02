@@ -65,7 +65,12 @@ export default function PinLayer({
             key={report.id}
             position={[report.lat, report.lng]}
             icon={icon}
-            eventHandlers={{ click: () => onSelectReport(report) }}
+            eventHandlers={{
+              click: (e) => {
+                e.originalEvent.stopPropagation();
+                onSelectReport(report);
+              },
+            }}
           />
         );
       })}

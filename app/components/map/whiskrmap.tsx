@@ -48,6 +48,22 @@ function RecenterMap({ lat, lng }: { lat: number; lng: number }) {
   return null;
 }
 
+function SaveMapPosition() {
+  useMapEvents({
+    moveend(e) {
+      const center = e.target.getCenter();
+      localStorage.setItem(
+        "whiskr-map-pos",
+        JSON.stringify({
+          lat: center.lat,
+          lng: center.lng,
+        }),
+      );
+    },
+  });
+  return null;
+}
+
 function ClickHandler({
   onClick,
 }: {
@@ -55,6 +71,10 @@ function ClickHandler({
 }) {
   useMapEvents({
     click(e) {
+      if (
+        (e.originalEvent.target as HTMLElement).closest(".leaflet-marker-icon")
+      )
+        return;
       onClick(e.latlng.lat, e.latlng.lng);
     },
   });
@@ -76,13 +96,23 @@ export default function WhiskrMap({
   const [gpsPos, setGpsPos] = useState<[number, number] | null>(null);
   const [clickPos, setClickPos] = useState<[number, number] | null>(null);
   const selectedReportRef = useRef<Report | null>(null);
+  const hasCentered = useRef(false);
+
+  const [initialCenter] = useState<[number, number]>(() => {
+    if (typeof window === "undefined") return DEFAULT_POS;
+    const saved = localStorage.getItem("whiskr-map-pos");
+    if (saved) {
+      const { lat, lng } = JSON.parse(saved);
+      return [lat, lng];
+    }
+    return DEFAULT_POS;
+  });
 
   useEffect(() => {
     function handleRescueCompleted(e: Event) {
       const { reportId } = (e as CustomEvent).detail;
       setReports((prev) => prev.filter((r) => r.id !== reportId));
     }
-
     window.addEventListener("rescue-completed", handleRescueCompleted);
     return () =>
       window.removeEventListener("rescue-completed", handleRescueCompleted);
@@ -117,7 +147,6 @@ export default function WhiskrMap({
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "reports" },
         (payload) => {
-          console.log("UPDATE event:", payload.new);
           const updated = payload.new as Report;
           if (["rescued", "not_found", "resolved"].includes(updated.status)) {
             setReports((prev) => prev.filter((r) => r.id !== updated.id));
@@ -146,22 +175,30 @@ export default function WhiskrMap({
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((p) => {
-        setGpsPos([p.coords.latitude, p.coords.longitude]);
+        if (!hasCentered.current) {
+          const saved = localStorage.getItem("whiskr-map-pos");
+          if (!saved) {
+            setGpsPos([p.coords.latitude, p.coords.longitude]);
+          }
+          hasCentered.current = true;
+        }
       });
     }
   }, []);
 
   return (
     <MapContainer
-      center={DEFAULT_POS}
+      center={initialCenter}
       zoom={14}
       doubleClickZoom={false}
+      zoomControl={false}
       style={{ height: "100%", width: "100%" }}
     >
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>'
       />
+      <SaveMapPosition />
       {gpsPos && <RecenterMap lat={gpsPos[0]} lng={gpsPos[1]} />}
       <ClickHandler
         onClick={(lat, lng) => {
