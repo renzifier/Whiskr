@@ -100,6 +100,8 @@ type Props = {
   filterTypes: string[];
   filterStatuses: string[];
   onLocate: (fn: () => void) => void;
+  showMineOnly: boolean;
+  userId: string;
 };
 
 export default function WhiskrMap({
@@ -109,6 +111,8 @@ export default function WhiskrMap({
   filterTypes,
   filterStatuses,
   onLocate,
+  showMineOnly,
+  userId,
 }: Props) {
   const [reports, setReports] = useState<Report[]>([]);
   const [gpsPos, setGpsPos] = useState<[number, number] | null>(null);
@@ -245,6 +249,8 @@ export default function WhiskrMap({
         onSelectReport={onSelectReport}
         filterTypes={filterTypes}
         filterStatuses={filterStatuses}
+        showMineOnly={showMineOnly}
+        userId={userId}
       />
       {clickPos && <Marker position={clickPos} icon={createPreviewIcon()} />}
     </MapContainer>

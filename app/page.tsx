@@ -145,6 +145,8 @@ export default function Home() {
             onLocate={(fn) => {
               locateFnRef.current = fn;
             }}
+            showMineOnly={activeRailItem === "profile"}
+            userId={session.user.id}
           />
 
           {isMobile && (

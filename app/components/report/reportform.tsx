@@ -57,6 +57,10 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
       .from("report-photos")
       .getPublicUrl(filename);
 
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     const { error: insertError } = await supabase.from("reports").insert({
       lat,
       lng,
@@ -64,6 +68,7 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
       description: description || null,
       reporter_contact: contact || null,
       photo_url: urlData.publicUrl,
+      reporter_id: user?.id ?? null,
     });
 
     if (insertError) {
