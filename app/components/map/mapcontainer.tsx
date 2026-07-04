@@ -11,10 +11,11 @@ type Props = {
   onMapClick: (lat: number, lng: number) => void;
   filterTypes: string[];
   filterStatuses: string[];
+  searchQuery: string;
   onLocate: (fn: () => void) => void;
+  onSearchNavigate: (fn: (lat: number, lng: number) => void) => void;
   showMineOnly: boolean;
   userId: string;
-  searchQuery: string;
 };
 
 export default function MapContainer({
@@ -23,10 +24,11 @@ export default function MapContainer({
   onMapClick,
   filterTypes,
   filterStatuses,
+  searchQuery,
   onLocate,
+  onSearchNavigate,
   showMineOnly,
   userId,
-  searchQuery,
 }: Props) {
   return (
     <div style={{ width: "100%", height: "100%" }}>
@@ -36,10 +38,11 @@ export default function MapContainer({
         onMapClick={onMapClick}
         filterTypes={filterTypes}
         filterStatuses={filterStatuses}
+        searchQuery={searchQuery}
         onLocate={onLocate}
+        onSearchNavigate={onSearchNavigate}
         showMineOnly={showMineOnly}
         userId={userId}
-        searchQuery={searchQuery}
       />
     </div>
   );

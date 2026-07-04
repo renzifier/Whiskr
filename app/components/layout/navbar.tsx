@@ -20,6 +20,7 @@ type Props = {
   onFilterStatuses: (statuses: string[]) => void;
   activeRailItem: string | null;
   onSelectRailItem: (item: string | null) => void;
+  onSelectPlace: (lat: number, lng: number) => void;
 };
 
 export default function Navbar({
@@ -36,6 +37,7 @@ export default function Navbar({
   onFilterStatuses,
   activeRailItem,
   onSelectRailItem,
+  onSelectPlace,
 }: Props) {
   const initials = email.charAt(0).toUpperCase();
   const [open, setOpen] = useState(false);
@@ -45,9 +47,51 @@ export default function Navbar({
   const draggingRef = useRef(false);
   const movedRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0, catX: 0, catY: 0 });
+  const [placeResults, setPlaceResults] = useState<
+    { display_name: string; lat: string; lon: string }[]
+  >([]);
+  const [searchingPlaces, setSearchingPlaces] = useState(false);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
   const ref = useRef<HTMLDivElement>(null);
   const filterRef = useRef<HTMLDivElement>(null);
   const mobileActionsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+
+    const query = searchQuery.trim();
+    if (query.length < 2) {
+      setPlaceResults([]);
+      return;
+    }
+
+    searchDebounceRef.current = setTimeout(async () => {
+      setSearchingPlaces(true);
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+            query,
+          )}&limit=5`,
+        );
+        const data = await res.json();
+        setPlaceResults(Array.isArray(data) ? data : []);
+      } catch {
+        setPlaceResults([]);
+      } finally {
+        setSearchingPlaces(false);
+      }
+    }, 400);
+
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, [searchQuery]);
+
+  function handleSelectPlace(place: { lat: string; lon: string }) {
+    onSelectPlace(parseFloat(place.lat), parseFloat(place.lon));
+    setPlaceResults([]);
+  }
 
   const hasActiveFilters = filterTypes.length > 0 || filterStatuses.length > 0;
 
@@ -117,6 +161,9 @@ export default function Navbar({
         !mobileActionsRef.current.contains(e.target as Node)
       ) {
         setMobileActionsOpen(false);
+      }
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setPlaceResults([]);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -190,6 +237,7 @@ export default function Navbar({
           display: "flex",
           alignItems: "flex-start",
           gap: 12,
+          width: "100%",
         }}
       >
         {/* Logo pill — desktop only */}
@@ -215,44 +263,103 @@ export default function Navbar({
         )}
 
         {/* Search bar pill */}
-        <div
-          style={{
-            width: isMobile ? 190 : 320,
-            maxWidth: "100%",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            background: "white",
-            borderRadius: 24,
-            padding: "10px 16px",
-            boxShadow: "0 2px 10px rgba(74,63,122,0.18)",
-            pointerEvents: "auto",
-            flexShrink: 1,
-          }}
-        >
-          <span style={{ fontSize: 14 }}>{isMobile ? "🐾" : "🔍"}</span>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="search reports..."
+        <div ref={searchRef} style={{ position: "relative" }}>
+          <div
             style={{
-              flex: 1,
-              border: "none",
-              outline: "none",
-              background: "transparent",
-              fontSize: 13,
-              color: "#4A3F7A",
-              minWidth: 0,
+              width: isMobile ? 190 : 320,
+              maxWidth: "100%",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              background: "white",
+              borderRadius: 24,
+              padding: "10px 16px",
+              boxShadow: "0 2px 10px rgba(74,63,122,0.18)",
+              pointerEvents: "auto",
+              flexShrink: 1,
             }}
-          />
-          {searchQuery && (
-            <span
-              onClick={() => onSearchChange("")}
-              style={{ fontSize: 12, color: "#9CA3AF", cursor: "pointer" }}
+          >
+            <span style={{ fontSize: 14 }}>{isMobile ? "🐾" : "🔍"}</span>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder="search reports or places..."
+              style={{
+                flex: 1,
+                border: "none",
+                outline: "none",
+                background: "transparent",
+                fontSize: 13,
+                color: "#4A3F7A",
+                minWidth: 0,
+              }}
+            />
+            {searchQuery && (
+              <span
+                onClick={() => {
+                  onSearchChange("");
+                  setPlaceResults([]);
+                }}
+                style={{ fontSize: 12, color: "#9CA3AF", cursor: "pointer" }}
+              >
+                ✕
+              </span>
+            )}
+          </div>
+
+          {(placeResults.length > 0 || searchingPlaces) && (
+            <div
+              style={{
+                position: "absolute",
+                top: 48,
+                left: 0,
+                width: "100%",
+                minWidth: 240,
+                background: "white",
+                borderRadius: 16,
+                boxShadow: "0 4px 24px rgba(74,63,122,0.15)",
+                border: "0.5px solid #E8E6F0",
+                overflow: "hidden",
+                zIndex: 99999,
+                pointerEvents: "auto",
+              }}
             >
-              ✕
-            </span>
+              {searchingPlaces && placeResults.length === 0 && (
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "#9CA3AF",
+                    padding: "12px 16px",
+                  }}
+                >
+                  searching places...
+                </p>
+              )}
+              {placeResults.map((place, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleSelectPlace(place)}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    textAlign: "left",
+                    padding: "10px 16px",
+                    background: "transparent",
+                    border: "none",
+                    borderBottom:
+                      i < placeResults.length - 1
+                        ? "0.5px solid #F5EEF0"
+                        : "none",
+                    cursor: "pointer",
+                    fontSize: 12,
+                    color: "#4A3F7A",
+                  }}
+                >
+                  📍 {place.display_name}
+                </button>
+              ))}
+            </div>
           )}
         </div>
 

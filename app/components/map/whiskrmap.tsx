@@ -105,6 +105,7 @@ type Props = {
   filterTypes: string[];
   filterStatuses: string[];
   onLocate: (fn: () => void) => void;
+  onSearchNavigate: (fn: (lat: number, lng: number) => void) => void;
   showMineOnly: boolean;
   userId: string;
   searchQuery: string;
@@ -117,6 +118,7 @@ export default function WhiskrMap({
   filterTypes,
   filterStatuses,
   onLocate,
+  onSearchNavigate,
   showMineOnly,
   userId,
   searchQuery,
@@ -229,38 +231,100 @@ export default function WhiskrMap({
     });
   }, []);
 
+  useEffect(() => {
+    onSearchNavigate((lat, lng) => {
+      mapRef.current?.setView([lat, lng], 14);
+    });
+  }, []);
+
   return (
-    <MapContainer
-      center={initialCenter}
-      zoom={14}
-      doubleClickZoom={false}
-      zoomControl={false}
-      style={{ height: "100%", width: "100%" }}
-    >
-      <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-        attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>'
-      />
-      <SaveMapPosition />
-      <MapCapture mapRef={mapRef} />
-      {gpsPos && <RecenterMap lat={gpsPos[0]} lng={gpsPos[1]} />}
-      <ClickHandler
-        onClick={(lat, lng) => {
-          setClickPos([lat, lng]);
-          onMapClick(lat, lng);
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      <MapContainer
+        center={initialCenter}
+        zoom={14}
+        doubleClickZoom={false}
+        zoomControl={false}
+        style={{ height: "100%", width: "100%" }}
+      >
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>'
+        />
+        <SaveMapPosition />
+        <MapCapture mapRef={mapRef} />
+        {gpsPos && <RecenterMap lat={gpsPos[0]} lng={gpsPos[1]} />}
+        <ClickHandler
+          onClick={(lat, lng) => {
+            setClickPos([lat, lng]);
+            onMapClick(lat, lng);
+          }}
+        />
+        <PinLayer
+          reports={reports}
+          selectedReport={selectedReport}
+          onSelectReport={onSelectReport}
+          filterTypes={filterTypes}
+          filterStatuses={filterStatuses}
+          showMineOnly={showMineOnly}
+          userId={userId}
+          searchQuery={searchQuery}
+        />
+        {clickPos && <Marker position={clickPos} icon={createPreviewIcon()} />}
+      </MapContainer>
+
+      {/* Manual zoom controls */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 20,
+          right: 20,
+          zIndex: 1000,
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
         }}
-      />
-      <PinLayer
-        reports={reports}
-        selectedReport={selectedReport}
-        onSelectReport={onSelectReport}
-        filterTypes={filterTypes}
-        filterStatuses={filterStatuses}
-        showMineOnly={showMineOnly}
-        userId={userId}
-        searchQuery={searchQuery}
-      />
-      {clickPos && <Marker position={clickPos} icon={createPreviewIcon()} />}
-    </MapContainer>
+      >
+        <button
+          onClick={() => mapRef.current?.zoomIn()}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: "50%",
+            border: "none",
+            background: "white",
+            boxShadow: "0 2px 10px rgba(74,63,122,0.25)",
+            cursor: "pointer",
+            fontSize: 18,
+            fontWeight: 600,
+            color: "#4A3F7A",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          +
+        </button>
+        <button
+          onClick={() => mapRef.current?.zoomOut()}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: "50%",
+            border: "none",
+            background: "white",
+            boxShadow: "0 2px 10px rgba(74,63,122,0.25)",
+            cursor: "pointer",
+            fontSize: 20,
+            fontWeight: 600,
+            color: "#4A3F7A",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          −
+        </button>
+      </div>
+    </div>
   );
 }

@@ -29,6 +29,9 @@ export default function Home() {
   const [filterTypes, setFilterTypes] = useState<string[]>([]);
   const [filterStatuses, setFilterStatuses] = useState<string[]>([]);
   const locateFnRef = useRef<(() => void) | null>(null);
+  const searchNavigateRef = useRef<((lat: number, lng: number) => void) | null>(
+    null,
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [savedReports, setSavedReports] = useState<Report[]>([]);
   const [recentlyViewed, setRecentlyViewed] = useState<RecentlyViewed[]>([]);
@@ -221,6 +224,7 @@ export default function Home() {
           onFilterStatuses={setFilterStatuses}
           activeRailItem={activeRailItem}
           onSelectRailItem={setActiveRailItem}
+          onSelectPlace={(lat, lng) => searchNavigateRef.current?.(lat, lng)}
         />
       </div>
 
@@ -254,6 +258,9 @@ export default function Home() {
             searchQuery={searchQuery}
             onLocate={(fn) => {
               locateFnRef.current = fn;
+            }}
+            onSearchNavigate={(fn) => {
+              searchNavigateRef.current = fn;
             }}
             showMineOnly={activeRailItem === "profile"}
             userId={session.user.id}
