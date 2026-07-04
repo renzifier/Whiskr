@@ -33,7 +33,7 @@ export default function Landing({ onLogin, onSignUp }: Props) {
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            flex: 1,
+            flex: "0 0 auto",
           }}
         >
           <div style={{ maxWidth: 400, margin: "0 auto", width: "100%" }}>
@@ -211,7 +211,7 @@ export default function Landing({ onLogin, onSignUp }: Props) {
           className="wh-landing-right"
           style={{
             background: "#1A1628",
-            minHeight: 280,
+            minHeight: 320,
             position: "relative",
             overflow: "hidden",
             flex: 1,

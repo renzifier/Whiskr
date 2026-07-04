@@ -20,6 +20,7 @@ export default function Home() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const [showReport, setShowReport] = useState(false);
   const [reportPos, setReportPos] = useState<[number, number] | null>(null);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
@@ -28,6 +29,7 @@ export default function Home() {
   const [filterTypes, setFilterTypes] = useState<string[]>([]);
   const [filterStatuses, setFilterStatuses] = useState<string[]>([]);
   const locateFnRef = useRef<(() => void) | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     function check() {
@@ -90,10 +92,21 @@ export default function Home() {
     return (
       <>
         <Landing
-          onLogin={() => setShowAuth(true)}
-          onSignUp={() => setShowAuth(true)}
+          onLogin={() => {
+            setAuthMode("login");
+            setShowAuth(true);
+          }}
+          onSignUp={() => {
+            setAuthMode("signup");
+            setShowAuth(true);
+          }}
         />
-        {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+        {showAuth && (
+          <AuthModal
+            onClose={() => setShowAuth(false)}
+            defaultMode={authMode}
+          />
+        )}
       </>
     );
   }
@@ -105,9 +118,26 @@ export default function Home() {
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
+        position: "relative",
       }}
     >
-      <Navbar email={session.user.email ?? ""} onLogout={handleLogout} />
+      {/* Floating navbar overlay — sits on top of the map, doesn't push it down */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: isMobile ? 0 : 56,
+          right: 0,
+          zIndex: 10001,
+        }}
+      >
+        <Navbar
+          email={session.user.email ?? ""}
+          onLogout={handleLogout}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
+      </div>
 
       <div
         style={{
@@ -142,6 +172,7 @@ export default function Home() {
             onMapClick={(lat, lng) => setReportPos([lat, lng])}
             filterTypes={filterTypes}
             filterStatuses={filterStatuses}
+            searchQuery={searchQuery}
             onLocate={(fn) => {
               locateFnRef.current = fn;
             }}
@@ -197,7 +228,9 @@ export default function Home() {
         )}
       </div>
 
-      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      {showAuth && (
+        <AuthModal onClose={() => setShowAuth(false)} defaultMode={authMode} />
+      )}
 
       {showReport && reportPos && (
         <ReportForm

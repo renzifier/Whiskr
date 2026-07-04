@@ -5,9 +5,16 @@ import { useState, useEffect, useRef } from "react";
 type Props = {
   email: string;
   onLogout: () => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
 };
 
-export default function Navbar({ email, onLogout }: Props) {
+export default function Navbar({
+  email,
+  onLogout,
+  searchQuery,
+  onSearchChange,
+}: Props) {
   const initials = email.charAt(0).toUpperCase();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -29,32 +36,87 @@ export default function Navbar({ email, onLogout }: Props) {
   return (
     <nav
       style={{
-        background: "white",
-        padding: "10px 20px",
+        background: "transparent",
+        padding: 16,
         display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        borderBottom: "0.5px solid #E8E6F0",
-        zIndex: 9998,
+        alignItems: "flex-start",
+        gap: 12,
+        zIndex: 10000,
         flexShrink: 0,
         position: "relative",
+        pointerEvents: "none",
       }}
     >
-      {/* Logo */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ fontSize: 20 }}>🐾</span>
-        <span style={{ fontWeight: 700, color: "#4A3F7A", fontSize: 16 }}>
+      {/* Logo pill */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          flexShrink: 0,
+          background: "white",
+          borderRadius: 24,
+          padding: "10px 16px",
+          boxShadow: "0 2px 10px rgba(74,63,122,0.18)",
+          pointerEvents: "auto",
+        }}
+      >
+        <span style={{ fontSize: 18 }}>🐾</span>
+        <span style={{ fontWeight: 700, color: "#4A3F7A", fontSize: 15 }}>
           whiskr
         </span>
       </div>
 
-      {/* Avatar + dropdown */}
-      <div ref={ref} style={{ position: "relative" }}>
+      {/* Search bar pill */}
+      <div
+        style={{
+          width: 320,
+          maxWidth: "100%",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          background: "white",
+          borderRadius: 24,
+          padding: "10px 16px",
+          boxShadow: "0 2px 10px rgba(74,63,122,0.18)",
+          pointerEvents: "auto",
+        }}
+      >
+        <span style={{ fontSize: 14, color: "#8B80C9" }}>🔍</span>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="search reports..."
+          style={{
+            flex: 1,
+            border: "none",
+            outline: "none",
+            background: "transparent",
+            fontSize: 13,
+            color: "#4A3F7A",
+          }}
+        />
+        {searchQuery && (
+          <span
+            onClick={() => onSearchChange("")}
+            style={{ fontSize: 12, color: "#9CA3AF", cursor: "pointer" }}
+          >
+            ✕
+          </span>
+        )}
+      </div>
+
+      {/* push avatar to the right */}
+      <div style={{ marginLeft: "auto" }} />
+
+      {/* Avatar pill + dropdown */}
+      <div ref={ref} style={{ position: "relative", pointerEvents: "auto" }}>
         <div
           onClick={() => setOpen(!open)}
           style={{
-            width: 36,
-            height: 36,
+            width: 40,
+            height: 40,
             borderRadius: "50%",
             background: "#8B80C9",
             display: "flex",
@@ -65,6 +127,7 @@ export default function Navbar({ email, onLogout }: Props) {
             fontWeight: 600,
             cursor: "pointer",
             userSelect: "none",
+            boxShadow: "0 2px 10px rgba(74,63,122,0.25)",
           }}
         >
           {initials}

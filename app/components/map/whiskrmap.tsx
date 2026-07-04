@@ -89,6 +89,11 @@ function MapCapture({
   const map = useMap();
   useEffect(() => {
     mapRef.current = map;
+    // Force Leaflet to recalculate size + zoom after layout settles
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [map]);
   return null;
 }
@@ -102,6 +107,7 @@ type Props = {
   onLocate: (fn: () => void) => void;
   showMineOnly: boolean;
   userId: string;
+  searchQuery: string;
 };
 
 export default function WhiskrMap({
@@ -113,6 +119,7 @@ export default function WhiskrMap({
   onLocate,
   showMineOnly,
   userId,
+  searchQuery,
 }: Props) {
   const [reports, setReports] = useState<Report[]>([]);
   const [gpsPos, setGpsPos] = useState<[number, number] | null>(null);
@@ -251,6 +258,7 @@ export default function WhiskrMap({
         filterStatuses={filterStatuses}
         showMineOnly={showMineOnly}
         userId={userId}
+        searchQuery={searchQuery}
       />
       {clickPos && <Marker position={clickPos} icon={createPreviewIcon()} />}
     </MapContainer>

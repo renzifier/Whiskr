@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
-import type { Report } from '../../../types';
+import dynamic from "next/dynamic";
+import type { Report } from "../../../types";
 
-const WhiskrMap = dynamic(() => import('./whiskrmap'), { ssr: false });
+const WhiskrMap = dynamic(() => import("./whiskrmap"), { ssr: false });
 
 type Props = {
   onSelectReport: (report: Report) => void;
@@ -14,6 +14,7 @@ type Props = {
   onLocate: (fn: () => void) => void;
   showMineOnly: boolean;
   userId: string;
+  searchQuery: string;
 };
 
 export default function MapContainer({
@@ -25,9 +26,10 @@ export default function MapContainer({
   onLocate,
   showMineOnly,
   userId,
+  searchQuery,
 }: Props) {
   return (
-    <div style={{ width: '100%', height: '100%' }}>
+    <div style={{ width: "100%", height: "100%" }}>
       <WhiskrMap
         onSelectReport={onSelectReport}
         selectedReport={selectedReport}
@@ -37,6 +39,7 @@ export default function MapContainer({
         onLocate={onLocate}
         showMineOnly={showMineOnly}
         userId={userId}
+        searchQuery={searchQuery}
       />
     </div>
   );

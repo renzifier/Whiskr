@@ -47,6 +47,7 @@ type Props = {
   filterStatuses: string[];
   showMineOnly: boolean;
   userId: string;
+  searchQuery: string;
 };
 
 export default function PinLayer({
@@ -57,6 +58,7 @@ export default function PinLayer({
   filterStatuses,
   showMineOnly,
   userId,
+  searchQuery,
 }: Props) {
   const filtered = reports.filter((r) => {
     const typeMatch =
@@ -64,7 +66,13 @@ export default function PinLayer({
     const statusMatch =
       filterStatuses.length === 0 || filterStatuses.includes(r.status);
     const mineMatch = !showMineOnly || r.reporter_id === userId;
-    return typeMatch && statusMatch && mineMatch;
+    const searchMatch =
+      !searchQuery.trim() ||
+      (r.description
+        ?.toLowerCase()
+        .includes(searchQuery.trim().toLowerCase()) ??
+        false);
+    return typeMatch && statusMatch && mineMatch && searchMatch;
   });
 
   return (

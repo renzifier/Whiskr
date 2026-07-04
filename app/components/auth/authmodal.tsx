@@ -5,12 +5,13 @@ import { supabase } from "../../../lib/supabase/client";
 
 type Props = {
   onClose: () => void;
+  defaultMode?: "login" | "signup";
 };
 
-export default function AuthModal({ onClose }: Props) {
+export default function AuthModal({ onClose, defaultMode = "login" }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isSignup, setIsSignup] = useState(false);
+  const [isSignup, setIsSignup] = useState(defaultMode === "signup");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
