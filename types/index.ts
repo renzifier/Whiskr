@@ -39,3 +39,16 @@ export type Profile = {
   email: string;
   created_at: string;
 };
+
+// Lightweight snapshot stored client-side (localStorage) when a report is
+// opened, so the "recently viewed" list still works even if the original
+// report is later deleted or resolved.
+export type RecentlyViewed = {
+  id: string;
+  cat_type: CatType;
+  description: string | null;
+  photo_url: string;
+  lat: number;
+  lng: number;
+  viewed_at: string;
+};

@@ -3,10 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase/client";
 import type { Session } from "@supabase/supabase-js";
-import type { Report } from "../types";
+import type { Report, RecentlyViewed } from "../types";
 import dynamic from "next/dynamic";
 import Navbar from "./components/layout/navbar";
-import IconRail from "./components/layout/iconrail";
+import Sidebar from "./components/layout/sidebar";
 import DetailPanel from "./components/panel/detailpanel";
 import AuthModal from "./components/auth/authmodal";
 import Landing from "./components/auth/landing";
@@ -30,6 +30,8 @@ export default function Home() {
   const [filterStatuses, setFilterStatuses] = useState<string[]>([]);
   const locateFnRef = useRef<(() => void) | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [savedReports, setSavedReports] = useState<Report[]>([]);
+  const [recentlyViewed, setRecentlyViewed] = useState<RecentlyViewed[]>([]);
 
   useEffect(() => {
     function check() {
@@ -64,6 +66,75 @@ export default function Home() {
 
     return () => listener.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("whiskr-recently-viewed");
+    if (saved) {
+      try {
+        setRecentlyViewed(JSON.parse(saved));
+      } catch {}
+    }
+  }, []);
+
+  // Track a view every time a report is opened
+  useEffect(() => {
+    if (!selectedReport) return;
+    setRecentlyViewed((prev) => {
+      const snapshot: RecentlyViewed = {
+        id: selectedReport.id,
+        cat_type: selectedReport.cat_type,
+        description: selectedReport.description,
+        photo_url: selectedReport.photo_url,
+        lat: selectedReport.lat,
+        lng: selectedReport.lng,
+        viewed_at: new Date().toISOString(),
+      };
+      const deduped = prev.filter((r) => r.id !== snapshot.id);
+      const next = [snapshot, ...deduped].slice(0, 10);
+      localStorage.setItem("whiskr-recently-viewed", JSON.stringify(next));
+      return next;
+    });
+  }, [selectedReport]);
+
+  // Load saved (bookmarked) reports for the logged-in user
+  async function loadSavedReports(userId: string) {
+    const { data } = await supabase
+      .from("saved_reports")
+      .select("report_id, reports(*)")
+      .eq("user_id", userId);
+
+    if (data) {
+      const reports = data
+        .map((row: any) => row.reports as Report)
+        .filter(Boolean);
+      setSavedReports(reports);
+    }
+  }
+
+  useEffect(() => {
+    if (session?.user.id) {
+      loadSavedReports(session.user.id);
+    }
+  }, [session?.user.id]);
+
+  async function handleToggleSave() {
+    if (!session || !selectedReport) return;
+    const alreadySaved = savedReports.some((r) => r.id === selectedReport.id);
+
+    if (alreadySaved) {
+      await supabase
+        .from("saved_reports")
+        .delete()
+        .eq("user_id", session.user.id)
+        .eq("report_id", selectedReport.id);
+      setSavedReports((prev) => prev.filter((r) => r.id !== selectedReport.id));
+    } else {
+      await supabase
+        .from("saved_reports")
+        .insert({ user_id: session.user.id, report_id: selectedReport.id });
+      setSavedReports((prev) => [...prev, selectedReport]);
+    }
+  }
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -126,7 +197,7 @@ export default function Home() {
         style={{
           position: "absolute",
           top: 0,
-          left: 0,
+          left: isMobile ? 0 : 88,
           right: 0,
           zIndex: 10001,
         }}
@@ -161,6 +232,18 @@ export default function Home() {
           position: "relative",
         }}
       >
+        <Sidebar
+          savedReports={savedReports}
+          recentlyViewed={recentlyViewed}
+          isMobile={isMobile}
+          onSelect={(item) => {
+            // RecentlyViewed items are lightweight snapshots; if the full
+            // report is still loaded on the map, prefer that richer object.
+            const full = savedReports.find((r) => r.id === item.id);
+            setSelectedReport((full ?? item) as Report);
+          }}
+        />
+
         <div style={{ flex: 1, position: "relative" }}>
           <Map
             onSelectReport={setSelectedReport}
@@ -175,24 +258,6 @@ export default function Home() {
             showMineOnly={activeRailItem === "profile"}
             userId={session.user.id}
           />
-
-          {isMobile && (
-            <IconRail
-              active={activeRailItem}
-              onSelect={setActiveRailItem}
-              session={session}
-              onAuthRequired={() => setShowAuth(true)}
-              onReport={() => setShowReport(true)}
-              filterTypes={filterTypes}
-              filterStatuses={filterStatuses}
-              onFilterTypes={setFilterTypes}
-              onFilterStatuses={setFilterStatuses}
-              onLocate={() => {
-                console.log("locate clicked, fn:", locateFnRef.current);
-                locateFnRef.current?.();
-              }}
-            />
-          )}
 
           {isMobile && selectedReport && (
             <div
@@ -209,6 +274,8 @@ export default function Home() {
                 session={session}
                 onClose={() => setSelectedReport(null)}
                 onAuthRequired={() => setShowAuth(true)}
+                isSaved={savedReports.some((r) => r.id === selectedReport.id)}
+                onToggleSave={handleToggleSave}
               />
             </div>
           )}
@@ -220,6 +287,8 @@ export default function Home() {
             session={session}
             onClose={() => setSelectedReport(null)}
             onAuthRequired={() => setShowAuth(true)}
+            isSaved={savedReports.some((r) => r.id === selectedReport.id)}
+            onToggleSave={handleToggleSave}
           />
         )}
       </div>

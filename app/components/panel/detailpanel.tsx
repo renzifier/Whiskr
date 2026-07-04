@@ -11,6 +11,8 @@ type Props = {
   session: Session;
   onClose: () => void;
   onAuthRequired: () => void;
+  isSaved: boolean;
+  onToggleSave: () => void;
 };
 
 const statusLabels: Record<string, { label: string; color: string }> = {
@@ -43,6 +45,8 @@ export default function DetailPanel({
   session,
   onClose,
   onAuthRequired,
+  isSaved,
+  onToggleSave,
 }: Props) {
   const [isMobile, setIsMobile] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -64,7 +68,14 @@ export default function DetailPanel({
 
   const content = (
     <>
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          marginBottom: 12,
+          alignItems: "center",
+        }}
+      >
         <span
           style={{
             fontSize: 11,
@@ -89,6 +100,28 @@ export default function DetailPanel({
         >
           {status.label}
         </span>
+
+        <button
+          onClick={() => {
+            if (!session) {
+              onAuthRequired();
+              return;
+            }
+            onToggleSave();
+          }}
+          title={isSaved ? "remove from saved" : "save this report"}
+          style={{
+            marginLeft: "auto",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            fontSize: 18,
+            padding: 0,
+            opacity: isSaved ? 1 : 0.4,
+          }}
+        >
+          🔖
+        </button>
       </div>
 
       {report.description && (
