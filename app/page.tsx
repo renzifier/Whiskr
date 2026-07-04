@@ -126,7 +126,7 @@ export default function Home() {
         style={{
           position: "absolute",
           top: 0,
-          left: isMobile ? 0 : 56,
+          left: 0,
           right: 0,
           zIndex: 10001,
         }}
@@ -136,6 +136,20 @@ export default function Home() {
           onLogout={handleLogout}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          isMobile={isMobile}
+          session={session}
+          onAuthRequired={() => setShowAuth(true)}
+          onReport={() => setShowReport(true)}
+          onLocate={() => {
+            console.log("locate clicked, fn:", locateFnRef.current);
+            locateFnRef.current?.();
+          }}
+          filterTypes={filterTypes}
+          filterStatuses={filterStatuses}
+          onFilterTypes={setFilterTypes}
+          onFilterStatuses={setFilterStatuses}
+          activeRailItem={activeRailItem}
+          onSelectRailItem={setActiveRailItem}
         />
       </div>
 
@@ -147,24 +161,6 @@ export default function Home() {
           position: "relative",
         }}
       >
-        {!isMobile && (
-          <IconRail
-            active={activeRailItem}
-            onSelect={setActiveRailItem}
-            session={session}
-            onAuthRequired={() => setShowAuth(true)}
-            onReport={() => setShowReport(true)}
-            filterTypes={filterTypes}
-            filterStatuses={filterStatuses}
-            onFilterTypes={setFilterTypes}
-            onFilterStatuses={setFilterStatuses}
-            onLocate={() => {
-              console.log("locate clicked, fn:", locateFnRef.current);
-              locateFnRef.current?.();
-            }}
-          />
-        )}
-
         <div style={{ flex: 1, position: "relative" }}>
           <Map
             onSelectReport={setSelectedReport}

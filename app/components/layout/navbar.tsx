@@ -1,12 +1,25 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import type { Session } from "@supabase/supabase-js";
+import { FilterPanel } from "./iconrail";
 
 type Props = {
   email: string;
   onLogout: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  isMobile: boolean;
+  session: Session;
+  onAuthRequired: () => void;
+  onReport: () => void;
+  onLocate: () => void;
+  filterTypes: string[];
+  filterStatuses: string[];
+  onFilterTypes: (types: string[]) => void;
+  onFilterStatuses: (statuses: string[]) => void;
+  activeRailItem: string | null;
+  onSelectRailItem: (item: string | null) => void;
 };
 
 export default function Navbar({
@@ -14,15 +27,31 @@ export default function Navbar({
   onLogout,
   searchQuery,
   onSearchChange,
+  isMobile,
+  onReport,
+  onLocate,
+  filterTypes,
+  filterStatuses,
+  onFilterTypes,
+  onFilterStatuses,
+  activeRailItem,
+  onSelectRailItem,
 }: Props) {
   const initials = email.charAt(0).toUpperCase();
   const [open, setOpen] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  const hasActiveFilters = filterTypes.length > 0 || filterStatuses.length > 0;
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent | TouchEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
+      }
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setShowFilter(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -32,6 +61,23 @@ export default function Navbar({
       document.removeEventListener("touchstart", handleClickOutside);
     };
   }, []);
+
+  const pillStyle = (activeState: boolean): React.CSSProperties => ({
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    background: activeState ? "#8B80C9" : "white",
+    color: activeState ? "white" : "#4A3F7A",
+    borderRadius: 24,
+    padding: "10px 16px",
+    fontSize: 13,
+    fontWeight: 500,
+    boxShadow: "0 2px 10px rgba(74,63,122,0.18)",
+    border: "none",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    pointerEvents: "auto",
+  });
 
   return (
     <nav
@@ -80,6 +126,7 @@ export default function Navbar({
           padding: "10px 16px",
           boxShadow: "0 2px 10px rgba(74,63,122,0.18)",
           pointerEvents: "auto",
+          flexShrink: 0,
         }}
       >
         <span style={{ fontSize: 14, color: "#8B80C9" }}>🔍</span>
@@ -106,6 +153,47 @@ export default function Navbar({
           </span>
         )}
       </div>
+
+      {/* Action pills — desktop only, mobile keeps the floating FAB */}
+      {!isMobile && (
+        <>
+          <button style={pillStyle(false)} onClick={onReport}>
+            ➕ report a cat
+          </button>
+
+          <button style={pillStyle(false)} onClick={onLocate}>
+            📍 locate me
+          </button>
+
+          <div ref={filterRef} style={{ position: "relative" }}>
+            <button
+              style={pillStyle(showFilter || hasActiveFilters)}
+              onClick={() => setShowFilter(!showFilter)}
+            >
+              🔧 filter
+            </button>
+            {showFilter && (
+              <FilterPanel
+                filterTypes={filterTypes}
+                filterStatuses={filterStatuses}
+                onFilterTypes={onFilterTypes}
+                onFilterStatuses={onFilterStatuses}
+                onClose={() => setShowFilter(false)}
+                style={{ position: "absolute", top: 52, left: 0 }}
+              />
+            )}
+          </div>
+
+          <button
+            style={pillStyle(activeRailItem === "profile")}
+            onClick={() =>
+              onSelectRailItem(activeRailItem === "profile" ? null : "profile")
+            }
+          >
+            👤 my reports
+          </button>
+        </>
+      )}
 
       {/* push avatar to the right */}
       <div style={{ marginLeft: "auto" }} />

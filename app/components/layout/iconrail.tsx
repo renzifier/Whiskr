@@ -16,31 +16,33 @@ type Props = {
   onLocate: () => void;
 };
 
-const typeOptions = [
+export const typeOptions = [
   { value: "stray", label: "stray", color: "#8B80C9" },
   { value: "missing", label: "missing", color: "#EF4444" },
   { value: "injured", label: "injured", color: "#8B5CF6" },
   { value: "colony", label: "colony", color: "#10B981" },
 ];
 
-const statusOptions = [
+export const statusOptions = [
   { value: "active", label: "active", color: "#10B981" },
   { value: "stale", label: "stale", color: "#9CA3AF" },
   { value: "rescue_accepted", label: "rescue accepted", color: "#3B82F6" },
 ];
 
-function FilterPanel({
+export function FilterPanel({
   filterTypes,
   filterStatuses,
   onFilterTypes,
   onFilterStatuses,
   onClose,
+  style,
 }: {
   filterTypes: string[];
   filterStatuses: string[];
   onFilterTypes: (t: string[]) => void;
   onFilterStatuses: (s: string[]) => void;
   onClose: () => void;
+  style?: React.CSSProperties;
 }) {
   function toggleType(value: string) {
     if (filterTypes.includes(value))
@@ -72,6 +74,7 @@ function FilterPanel({
         padding: 16,
         width: 220,
         zIndex: 99999,
+        ...style,
       }}
     >
       <div
@@ -363,6 +366,9 @@ export default function IconRail({
     );
   }
 
+  // Desktop rail is no longer rendered (page.tsx only mounts IconRail on
+  // mobile now) — kept here only as a fallback in case this component is
+  // ever rendered outside the mobile branch.
   return (
     <div
       style={{
