@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { Session } from "@supabase/supabase-js";
+import type { Profile } from "../../../types";
 import { FilterPanel } from "./iconrail";
+import EditProfileModal from "../auth/editprofilemodal";
 
 type Props = {
   email: string;
@@ -21,6 +23,8 @@ type Props = {
   activeRailItem: string | null;
   onSelectRailItem: (item: string | null) => void;
   onSelectPlace: (lat: number, lng: number) => void;
+  profile: Profile | null;
+  onProfileSaved: (profile: Profile) => void;
 };
 
 export default function Navbar({
@@ -29,6 +33,7 @@ export default function Navbar({
   searchQuery,
   onSearchChange,
   isMobile,
+  session,
   onReport,
   onLocate,
   filterTypes,
@@ -38,9 +43,12 @@ export default function Navbar({
   activeRailItem,
   onSelectRailItem,
   onSelectPlace,
+  profile,
+  onProfileSaved,
 }: Props) {
-  const initials = email.charAt(0).toUpperCase();
+  const initials = (profile?.display_name || email).charAt(0).toUpperCase();
   const [open, setOpen] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
   const [catPos, setCatPos] = useState({ x: 16, y: 80 });
@@ -218,396 +226,440 @@ export default function Navbar({
   );
 
   return (
-    <nav
-      style={{
-        background: "transparent",
-        padding: 16,
-        display: "flex",
-        flexDirection: isMobile ? "column" : "row",
-        alignItems: isMobile ? "stretch" : "flex-start",
-        gap: 12,
-        zIndex: 10000,
-        flexShrink: 0,
-        position: "relative",
-        pointerEvents: "none",
-      }}
-    >
-      <div
+    <>
+      <nav
         style={{
+          background: "transparent",
+          padding: 16,
           display: "flex",
-          alignItems: "flex-start",
+          flexDirection: isMobile ? "column" : "row",
+          alignItems: isMobile ? "stretch" : "flex-start",
           gap: 12,
-          width: "100%",
+          zIndex: 10000,
+          flexShrink: 0,
+          position: "relative",
+          pointerEvents: "none",
         }}
       >
-        {/* Logo pill — desktop only */}
-        {!isMobile && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              flexShrink: 0,
-              background: "white",
-              borderRadius: 24,
-              padding: "10px 16px",
-              boxShadow: "0 2px 10px rgba(74,63,122,0.18)",
-              pointerEvents: "auto",
-            }}
-          >
-            <span style={{ fontSize: 18 }}>🐾</span>
-            <span style={{ fontWeight: 700, color: "#4A3F7A", fontSize: 15 }}>
-              whiskr
-            </span>
-          </div>
-        )}
-
-        {/* Search bar pill */}
-        <div ref={searchRef} style={{ position: "relative" }}>
-          <div
-            style={{
-              width: isMobile ? 190 : 320,
-              maxWidth: "100%",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              background: "white",
-              borderRadius: 24,
-              padding: "10px 16px",
-              boxShadow: "0 2px 10px rgba(74,63,122,0.18)",
-              pointerEvents: "auto",
-              flexShrink: 1,
-            }}
-          >
-            <span style={{ fontSize: 14 }}>{isMobile ? "🐾" : "🔍"}</span>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="search reports or places..."
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 12,
+            width: "100%",
+          }}
+        >
+          {/* Logo pill — desktop only */}
+          {!isMobile && (
+            <div
               style={{
-                flex: 1,
-                border: "none",
-                outline: "none",
-                background: "transparent",
-                fontSize: 13,
-                color: "#4A3F7A",
-                minWidth: 0,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                flexShrink: 0,
+                background: "white",
+                borderRadius: 24,
+                padding: "10px 16px",
+                boxShadow: "0 2px 10px rgba(74,63,122,0.18)",
+                pointerEvents: "auto",
               }}
-            />
-            {searchQuery && (
-              <span
-                onClick={() => {
-                  onSearchChange("");
-                  setPlaceResults([]);
-                }}
-                style={{ fontSize: 12, color: "#9CA3AF", cursor: "pointer" }}
-              >
-                ✕
+            >
+              <span style={{ fontSize: 18 }}>🐾</span>
+              <span style={{ fontWeight: 700, color: "#4A3F7A", fontSize: 15 }}>
+                whiskr
               </span>
+            </div>
+          )}
+
+          {/* Search bar pill */}
+          <div ref={searchRef} style={{ position: "relative" }}>
+            <div
+              style={{
+                width: isMobile ? 190 : 320,
+                maxWidth: "100%",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                background: "white",
+                borderRadius: 24,
+                padding: "10px 16px",
+                boxShadow: "0 2px 10px rgba(74,63,122,0.18)",
+                pointerEvents: "auto",
+                flexShrink: 1,
+              }}
+            >
+              <span style={{ fontSize: 14 }}>{isMobile ? "🐾" : "🔍"}</span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                placeholder="search reports or places..."
+                style={{
+                  flex: 1,
+                  border: "none",
+                  outline: "none",
+                  background: "transparent",
+                  fontSize: 13,
+                  color: "#4A3F7A",
+                  minWidth: 0,
+                }}
+              />
+              {searchQuery && (
+                <span
+                  onClick={() => {
+                    onSearchChange("");
+                    setPlaceResults([]);
+                  }}
+                  style={{ fontSize: 12, color: "#9CA3AF", cursor: "pointer" }}
+                >
+                  ✕
+                </span>
+              )}
+            </div>
+
+            {(placeResults.length > 0 || searchingPlaces) && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: 48,
+                  left: 0,
+                  width: "100%",
+                  minWidth: 240,
+                  background: "white",
+                  borderRadius: 16,
+                  boxShadow: "0 4px 24px rgba(74,63,122,0.15)",
+                  border: "0.5px solid #E8E6F0",
+                  overflow: "hidden",
+                  zIndex: 99999,
+                  pointerEvents: "auto",
+                }}
+              >
+                {searchingPlaces && placeResults.length === 0 && (
+                  <p
+                    style={{
+                      fontSize: 12,
+                      color: "#9CA3AF",
+                      padding: "12px 16px",
+                    }}
+                  >
+                    searching places...
+                  </p>
+                )}
+                {placeResults.map((place, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleSelectPlace(place)}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      textAlign: "left",
+                      padding: "10px 16px",
+                      background: "transparent",
+                      border: "none",
+                      borderBottom:
+                        i < placeResults.length - 1
+                          ? "0.5px solid #F5EEF0"
+                          : "none",
+                      cursor: "pointer",
+                      fontSize: 12,
+                      color: "#4A3F7A",
+                    }}
+                  >
+                    📍 {place.display_name}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
 
-          {(placeResults.length > 0 || searchingPlaces) && (
-            <div
-              style={{
-                position: "absolute",
-                top: 48,
-                left: 0,
-                width: "100%",
-                minWidth: 240,
-                background: "white",
-                borderRadius: 16,
-                boxShadow: "0 4px 24px rgba(74,63,122,0.15)",
-                border: "0.5px solid #E8E6F0",
-                overflow: "hidden",
-                zIndex: 99999,
-                pointerEvents: "auto",
-              }}
-            >
-              {searchingPlaces && placeResults.length === 0 && (
-                <p
-                  style={{
-                    fontSize: 12,
-                    color: "#9CA3AF",
-                    padding: "12px 16px",
-                  }}
-                >
-                  searching places...
-                </p>
-              )}
-              {placeResults.map((place, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleSelectPlace(place)}
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    textAlign: "left",
-                    padding: "10px 16px",
-                    background: "transparent",
-                    border: "none",
-                    borderBottom:
-                      i < placeResults.length - 1
-                        ? "0.5px solid #F5EEF0"
-                        : "none",
-                    cursor: "pointer",
-                    fontSize: 12,
-                    color: "#4A3F7A",
-                  }}
-                >
-                  📍 {place.display_name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Desktop action pills */}
-        {!isMobile && (
-          <>
-            <button style={pillStyle(false)} onClick={onReport}>
-              ➕ report a cat
-            </button>
-
-            <button style={pillStyle(false)} onClick={onLocate}>
-              📍 locate me
-            </button>
-
-            <div ref={filterRef} style={{ position: "relative" }}>
-              <button
-                style={pillStyle(showFilter || hasActiveFilters)}
-                onClick={() => setShowFilter(!showFilter)}
-              >
-                🔧 filter
+          {/* Desktop action pills */}
+          {!isMobile && (
+            <>
+              <button style={pillStyle(false)} onClick={onReport}>
+                ➕ report a cat
               </button>
-              {showFilter && (
-                <FilterPanel
-                  filterTypes={filterTypes}
-                  filterStatuses={filterStatuses}
-                  onFilterTypes={onFilterTypes}
-                  onFilterStatuses={onFilterStatuses}
-                  onClose={() => setShowFilter(false)}
-                  style={{ position: "absolute", top: 52, left: 0 }}
-                />
-              )}
-            </div>
 
-            <button
-              style={pillStyle(activeRailItem === "profile")}
-              onClick={() =>
-                onSelectRailItem(
-                  activeRailItem === "profile" ? null : "profile",
-                )
-              }
-            >
-              👤 my reports
-            </button>
-          </>
-        )}
+              <button style={pillStyle(false)} onClick={onLocate}>
+                📍 locate me
+              </button>
 
-        {/* push avatar to the right */}
-        <div style={{ marginLeft: "auto" }} />
-
-        {/* Avatar pill + dropdown */}
-        <div ref={ref} style={{ position: "relative", pointerEvents: "auto" }}>
-          <div
-            onClick={() => setOpen(!open)}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: "50%",
-              background: "#8B80C9",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "white",
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: "pointer",
-              userSelect: "none",
-              boxShadow: "0 2px 10px rgba(74,63,122,0.25)",
-            }}
-          >
-            {initials}
-          </div>
-
-          {open && (
-            <div
-              style={{
-                position: "absolute",
-                top: 44,
-                right: 0,
-                background: "white",
-                borderRadius: 14,
-                boxShadow: "0 4px 24px rgba(74,63,122,0.15)",
-                border: "0.5px solid #E8E6F0",
-                minWidth: 200,
-                overflow: "hidden",
-                zIndex: 9999,
-              }}
-            >
-              <div
-                style={{
-                  padding: "14px 16px 10px",
-                  borderBottom: "0.5px solid #E8E6F0",
-                }}
-              >
-                <p style={{ fontSize: 11, color: "#9CA3AF", marginBottom: 2 }}>
-                  signed in as
-                </p>
-                <p
-                  style={{
-                    fontSize: 13,
-                    color: "#4A3F7A",
-                    fontWeight: 500,
-                    wordBreak: "break-all",
-                  }}
+              <div ref={filterRef} style={{ position: "relative" }}>
+                <button
+                  style={pillStyle(showFilter || hasActiveFilters)}
+                  onClick={() => setShowFilter(!showFilter)}
                 >
-                  {email}
-                </p>
+                  🔧 filter
+                </button>
+                {showFilter && (
+                  <FilterPanel
+                    filterTypes={filterTypes}
+                    filterStatuses={filterStatuses}
+                    onFilterTypes={onFilterTypes}
+                    onFilterStatuses={onFilterStatuses}
+                    onClose={() => setShowFilter(false)}
+                    style={{ position: "absolute", top: 52, left: 0 }}
+                  />
+                )}
               </div>
 
               <button
-                onClick={() => setOpen(false)}
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  fontSize: 13,
-                  color: "#4A3F7A",
-                  textAlign: "left",
-                  borderBottom: "0.5px solid #E8E6F0",
-                }}
+                style={pillStyle(activeRailItem === "profile")}
+                onClick={() =>
+                  onSelectRailItem(
+                    activeRailItem === "profile" ? null : "profile",
+                  )
+                }
               >
-                <span>✏️</span> edit profile
+                👤 my reports
               </button>
-
-              <button
-                onClick={() => {
-                  onLogout();
-                  setOpen(false);
-                }}
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  fontSize: 13,
-                  color: "#EF4444",
-                  textAlign: "left",
-                }}
-              >
-                <span>🚪</span> log out
-              </button>
-            </div>
+            </>
           )}
-        </div>
-      </div>
 
-      {/* Mobile: draggable cat-icon toggle for actions */}
-      {isMobile && (
-        <div ref={mobileActionsRef}>
-          <button
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            style={{
-              position: "fixed",
-              left: catPos.x,
-              top: catPos.y,
-              width: 40,
-              height: 40,
-              borderRadius: "50%",
-              border: "none",
-              background: "white",
-              boxShadow: "0 2px 10px rgba(74,63,122,0.18)",
-              cursor: "grab",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 18,
-              flexShrink: 0,
-              touchAction: "none",
-              zIndex: 10003,
-              pointerEvents: "auto",
-            }}
+          {/* push avatar to the right */}
+          <div style={{ marginLeft: "auto" }} />
+
+          {/* Avatar pill + dropdown */}
+          <div
+            ref={ref}
+            style={{ position: "relative", pointerEvents: "auto" }}
           >
-            🐱
-          </button>
-
-          {mobileActionsOpen && (
             <div
+              onClick={() => setOpen(!open)}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: "50%",
+                backgroundColor: "#8B80C9",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "white",
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: "pointer",
+                userSelect: "none",
+                boxShadow: "0 2px 10px rgba(74,63,122,0.25)",
+                overflow: "hidden",
+                position: "relative",
+              }}
+            >
+              {profile?.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt="avatar"
+                  onError={(e) => {
+                    console.error(
+                      "Avatar image failed to load:",
+                      profile.avatar_url,
+                    );
+                    (e.currentTarget as HTMLImageElement).style.display =
+                      "none";
+                  }}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
+              ) : (
+                initials
+              )}
+            </div>
+
+            {open && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: 44,
+                  right: 0,
+                  background: "white",
+                  borderRadius: 14,
+                  boxShadow: "0 4px 24px rgba(74,63,122,0.15)",
+                  border: "0.5px solid #E8E6F0",
+                  minWidth: 200,
+                  overflow: "hidden",
+                  zIndex: 9999,
+                }}
+              >
+                <div
+                  style={{
+                    padding: "14px 16px 10px",
+                    borderBottom: "0.5px solid #E8E6F0",
+                  }}
+                >
+                  <p
+                    style={{ fontSize: 11, color: "#9CA3AF", marginBottom: 2 }}
+                  >
+                    signed in as
+                  </p>
+                  <p
+                    style={{
+                      fontSize: 13,
+                      color: "#4A3F7A",
+                      fontWeight: 500,
+                      wordBreak: "break-all",
+                    }}
+                  >
+                    {profile?.display_name || email}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setShowEditProfile(true);
+                    setOpen(false);
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "12px 16px",
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    fontSize: 13,
+                    color: "#4A3F7A",
+                    textAlign: "left",
+                    borderBottom: "0.5px solid #E8E6F0",
+                  }}
+                >
+                  <span>✏️</span> edit profile
+                </button>
+
+                <button
+                  onClick={() => {
+                    onLogout();
+                    setOpen(false);
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "12px 16px",
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    fontSize: 13,
+                    color: "#EF4444",
+                    textAlign: "left",
+                  }}
+                >
+                  <span>🚪</span> log out
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile: draggable cat-icon toggle for actions */}
+        {isMobile && (
+          <div ref={mobileActionsRef}>
+            <button
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
               style={{
                 position: "fixed",
                 left: catPos.x,
-                top: catPos.y + 48,
+                top: catPos.y,
+                width: 40,
+                height: 40,
+                borderRadius: "50%",
+                border: "none",
                 background: "white",
-                borderRadius: 16,
-                boxShadow: "0 4px 24px rgba(74,63,122,0.15)",
-                border: "0.5px solid #E8E6F0",
-                width: 180,
-                overflow: "hidden",
-                zIndex: 99999,
+                boxShadow: "0 2px 10px rgba(74,63,122,0.18)",
+                cursor: "grab",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 18,
+                flexShrink: 0,
+                touchAction: "none",
+                zIndex: 10003,
                 pointerEvents: "auto",
               }}
             >
-              {mobileActionRow("➕", "report a cat", () => {
-                onReport();
-                setMobileActionsOpen(false);
-              })}
-              {mobileActionRow("📍", "locate me", () => {
-                onLocate();
-                setMobileActionsOpen(false);
-              })}
-              {mobileActionRow(
-                "🔧",
-                "filter",
-                () => {
-                  setShowFilter(!showFilter);
-                },
-                showFilter || hasActiveFilters,
-              )}
-              {mobileActionRow(
-                "👤",
-                "my reports",
-                () => {
-                  onSelectRailItem(
-                    activeRailItem === "profile" ? null : "profile",
-                  );
-                  setMobileActionsOpen(false);
-                },
-                activeRailItem === "profile",
-              )}
-            </div>
-          )}
+              🐱
+            </button>
 
-          {showFilter && (
-            <FilterPanel
-              filterTypes={filterTypes}
-              filterStatuses={filterStatuses}
-              onFilterTypes={onFilterTypes}
-              onFilterStatuses={onFilterStatuses}
-              onClose={() => setShowFilter(false)}
-              style={{
-                position: "fixed",
-                left: catPos.x,
-                top: catPos.y + 48,
-                pointerEvents: "auto",
-              }}
-            />
-          )}
-        </div>
+            {mobileActionsOpen && (
+              <div
+                style={{
+                  position: "fixed",
+                  left: catPos.x,
+                  top: catPos.y + 48,
+                  background: "white",
+                  borderRadius: 16,
+                  boxShadow: "0 4px 24px rgba(74,63,122,0.15)",
+                  border: "0.5px solid #E8E6F0",
+                  width: 180,
+                  overflow: "hidden",
+                  zIndex: 99999,
+                  pointerEvents: "auto",
+                }}
+              >
+                {mobileActionRow("➕", "report a cat", () => {
+                  onReport();
+                  setMobileActionsOpen(false);
+                })}
+                {mobileActionRow("📍", "locate me", () => {
+                  onLocate();
+                  setMobileActionsOpen(false);
+                })}
+                {mobileActionRow(
+                  "🔧",
+                  "filter",
+                  () => {
+                    setShowFilter(!showFilter);
+                  },
+                  showFilter || hasActiveFilters,
+                )}
+                {mobileActionRow(
+                  "👤",
+                  "my reports",
+                  () => {
+                    onSelectRailItem(
+                      activeRailItem === "profile" ? null : "profile",
+                    );
+                    setMobileActionsOpen(false);
+                  },
+                  activeRailItem === "profile",
+                )}
+              </div>
+            )}
+
+            {showFilter && (
+              <FilterPanel
+                filterTypes={filterTypes}
+                filterStatuses={filterStatuses}
+                onFilterTypes={onFilterTypes}
+                onFilterStatuses={onFilterStatuses}
+                onClose={() => setShowFilter(false)}
+                style={{
+                  position: "fixed",
+                  left: catPos.x,
+                  top: catPos.y + 48,
+                  pointerEvents: "auto",
+                }}
+              />
+            )}
+          </div>
+        )}
+      </nav>
+
+      {showEditProfile && (
+        <EditProfileModal
+          session={session}
+          profile={profile}
+          onClose={() => setShowEditProfile(false)}
+          onSaved={(updated) => {
+            onProfileSaved(updated);
+            setShowEditProfile(false);
+          }}
+        />
       )}
-    </nav>
+    </>
   );
 }

@@ -11,6 +11,68 @@ type Props = {
   onAuthRequired: () => void;
 };
 
+function ActionIcon({
+  icon,
+  label,
+  onClick,
+  active,
+  disabled,
+  color,
+}: {
+  icon: string;
+  label: string;
+  onClick: () => void;
+  active?: boolean;
+  disabled?: boolean;
+  color?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 4,
+        background: "transparent",
+        border: "none",
+        cursor: disabled ? "default" : "pointer",
+        flex: 1,
+        minWidth: 0,
+        opacity: disabled ? 0.5 : 1,
+      }}
+    >
+      <div
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: "50%",
+          background: active ? (color ?? "#8B80C9") : "#E7DBFF",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 15,
+          color: active ? "white" : (color ?? "#4A3F7A"),
+        }}
+      >
+        {icon}
+      </div>
+      <span
+        style={{
+          fontSize: 10,
+          color: "#4A3F7A",
+          fontWeight: 500,
+          textAlign: "center",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {label}
+      </span>
+    </button>
+  );
+}
+
 export default function RescueActions({
   report,
   session,
@@ -56,7 +118,6 @@ export default function RescueActions({
     }
 
     setLoading(false);
-    // Manually trigger UI update since Realtime may not fire
     window.dispatchEvent(
       new CustomEvent("rescue-completed", {
         detail: { reportId: report.id },
@@ -89,14 +150,14 @@ export default function RescueActions({
 
   if (report.status === "rescue_accepted" && isRescuer) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ width: "100%" }}>
         {contact && (
           <div
             style={{
               background: "#E7DBFF",
               borderRadius: 10,
               padding: 12,
-              marginBottom: 4,
+              marginBottom: 10,
             }}
           >
             <p
@@ -112,56 +173,29 @@ export default function RescueActions({
             <p style={{ fontSize: 13, color: "#4A3F7A" }}>{contact}</p>
           </div>
         )}
-        <button
-          onClick={() => handleComplete("rescued")}
-          disabled={loading}
-          style={{
-            width: "100%",
-            padding: "12px 0",
-            background: "#10B981",
-            color: "white",
-            border: "none",
-            borderRadius: 10,
-            fontSize: 13,
-            fontWeight: 500,
-            cursor: "pointer",
-          }}
-        >
-          mark rescued ✓
-        </button>
-        <button
-          onClick={() => handleComplete("not_found")}
-          disabled={loading}
-          style={{
-            width: "100%",
-            padding: "12px 0",
-            background: "white",
-            color: "#EF4444",
-            border: "1.5px solid #EF4444",
-            borderRadius: 10,
-            fontSize: 13,
-            fontWeight: 500,
-            cursor: "pointer",
-          }}
-        >
-          not found ✗
-        </button>
-        <button
-          onClick={handleRelease}
-          disabled={loading}
-          style={{
-            width: "100%",
-            padding: "8px 0",
-            background: "transparent",
-            color: "#9CA3AF",
-            border: "1px solid #E8E6F0",
-            borderRadius: 10,
-            fontSize: 12,
-            cursor: "pointer",
-          }}
-        >
-          release rescue
-        </button>
+        <div style={{ display: "flex", gap: 4 }}>
+          <ActionIcon
+            icon="✓"
+            label="rescued"
+            color="#10B981"
+            disabled={loading}
+            onClick={() => handleComplete("rescued")}
+          />
+          <ActionIcon
+            icon="✗"
+            label="not found"
+            color="#EF4444"
+            disabled={loading}
+            onClick={() => handleComplete("not_found")}
+          />
+          <ActionIcon
+            icon="↩"
+            label="release"
+            color="#9CA3AF"
+            disabled={loading}
+            onClick={handleRelease}
+          />
+        </div>
       </div>
     );
   }
@@ -182,29 +216,27 @@ export default function RescueActions({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    <div style={{ width: "100%" }}>
       {error && (
-        <p style={{ fontSize: 12, color: "#EF4444", textAlign: "center" }}>
+        <p
+          style={{
+            fontSize: 12,
+            color: "#EF4444",
+            textAlign: "center",
+            marginBottom: 8,
+          }}
+        >
           {error}
         </p>
       )}
-      <button
-        onClick={handleAccept}
+      <ActionIcon
+        icon="🐾"
+        label={loading ? "accepting..." : "accept rescue"}
+        color="#4A3F7A"
+        active
         disabled={loading}
-        style={{
-          width: "100%",
-          padding: "12px 0",
-          background: "#4A3F7A",
-          color: "white",
-          border: "none",
-          borderRadius: 10,
-          fontSize: 13,
-          fontWeight: 500,
-          cursor: "pointer",
-        }}
-      >
-        {loading ? "accepting..." : "accept rescue"}
-      </button>
+        onClick={handleAccept}
+      />
     </div>
   );
 }

@@ -7,6 +7,68 @@ type Props = {
   reportId: string;
 };
 
+function ActionIcon({
+  icon,
+  label,
+  onClick,
+  active,
+  disabled,
+  color,
+}: {
+  icon: string;
+  label: string;
+  onClick: () => void;
+  active?: boolean;
+  disabled?: boolean;
+  color?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 4,
+        background: "transparent",
+        border: "none",
+        cursor: disabled ? "default" : "pointer",
+        flex: 1,
+        minWidth: 0,
+        opacity: disabled ? 0.5 : 1,
+      }}
+    >
+      <div
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: "50%",
+          background: active ? (color ?? "#8B80C9") : "#E7DBFF",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 15,
+          color: active ? "white" : (color ?? "#4A3F7A"),
+        }}
+      >
+        {icon}
+      </div>
+      <span
+        style={{
+          fontSize: 10,
+          color: "#4A3F7A",
+          fontWeight: 500,
+          textAlign: "center",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {label}
+      </span>
+    </button>
+  );
+}
+
 export default function VoteButtons({ reportId }: Props) {
   const [stillHere, setStillHere] = useState(0);
   const [notHere, setNotHere] = useState(0);
@@ -42,53 +104,23 @@ export default function VoteButtons({ reportId }: Props) {
   }
 
   return (
-    <div style={{ marginBottom: 16 }}>
-      <p
-        style={{
-          fontSize: 11,
-          color: "#9CA3AF",
-          marginBottom: 8,
-          fontWeight: 600,
-        }}
-      >
-        community confirmation
-      </p>
-      <div style={{ display: "flex", gap: 8 }}>
-        <button
-          onClick={() => handleVote("still_here")}
-          disabled={voted || loading}
-          style={{
-            flex: 1,
-            padding: "8px 0",
-            borderRadius: 10,
-            border: "1.5px solid #10B981",
-            background: voted ? "#10B98120" : "transparent",
-            color: "#10B981",
-            fontSize: 12,
-            fontWeight: 500,
-            cursor: voted ? "default" : "pointer",
-          }}
-        >
-          ✓ still here ({stillHere})
-        </button>
-        <button
-          onClick={() => handleVote("not_here")}
-          disabled={voted || loading}
-          style={{
-            flex: 1,
-            padding: "8px 0",
-            borderRadius: 10,
-            border: "1.5px solid #EF4444",
-            background: voted ? "#EF444420" : "transparent",
-            color: "#EF4444",
-            fontSize: 12,
-            fontWeight: 500,
-            cursor: voted ? "default" : "pointer",
-          }}
-        >
-          ✗ not here ({notHere})
-        </button>
-      </div>
-    </div>
+    <>
+      <ActionIcon
+        icon="✓"
+        label={`${stillHere} here`}
+        color="#10B981"
+        active={voted}
+        disabled={voted || loading}
+        onClick={() => handleVote("still_here")}
+      />
+      <ActionIcon
+        icon="✗"
+        label={`${notHere} gone`}
+        color="#EF4444"
+        active={voted}
+        disabled={voted || loading}
+        onClick={() => handleVote("not_here")}
+      />
+    </>
   );
 }

@@ -40,6 +40,60 @@ function timeAgo(dateStr: string) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
+function QuickActionIcon({
+  icon,
+  label,
+  onClick,
+}: {
+  icon: string;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 4,
+        background: "transparent",
+        border: "none",
+        cursor: "pointer",
+        flex: 1,
+        minWidth: 0,
+      }}
+    >
+      <div
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: "50%",
+          background: "#E7DBFF",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 15,
+          color: "#4A3F7A",
+        }}
+      >
+        {icon}
+      </div>
+      <span
+        style={{
+          fontSize: 10,
+          color: "#4A3F7A",
+          fontWeight: 500,
+          textAlign: "center",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {label}
+      </span>
+    </button>
+  );
+}
+
 export default function DetailPanel({
   report,
   session,
@@ -51,6 +105,7 @@ export default function DetailPanel({
   const [isMobile, setIsMobile] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [dragStartY, setDragStartY] = useState<number | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
   const status = statusLabels[report.status] ?? statusLabels.active;
 
   useEffect(() => {
@@ -66,16 +121,32 @@ export default function DetailPanel({
     setExpanded(false);
   }, [report.id]);
 
+  function handleDirections() {
+    window.open(
+      `https://www.google.com/maps/dir/?api=1&destination=${report.lat},${report.lng}`,
+      "_blank",
+    );
+  }
+
+  function handleShare() {
+    const url = `${window.location.origin}${window.location.pathname}?report=${report.id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 1500);
+    });
+  }
+
+  function handleSaveClick() {
+    if (!session) {
+      onAuthRequired();
+      return;
+    }
+    onToggleSave();
+  }
+
   const content = (
     <>
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          marginBottom: 12,
-          alignItems: "center",
-        }}
-      >
+      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
         <span
           style={{
             fontSize: 11,
@@ -100,28 +171,6 @@ export default function DetailPanel({
         >
           {status.label}
         </span>
-
-        <button
-          onClick={() => {
-            if (!session) {
-              onAuthRequired();
-              return;
-            }
-            onToggleSave();
-          }}
-          title={isSaved ? "remove from saved" : "save this report"}
-          style={{
-            marginLeft: "auto",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            fontSize: 18,
-            padding: 0,
-            opacity: isSaved ? 1 : 0.4,
-          }}
-        >
-          🔖
-        </button>
       </div>
 
       {report.description && (
@@ -153,7 +202,35 @@ export default function DetailPanel({
         </p>
       </div>
 
-      <VoteButtons reportId={report.id} />
+      {/* Quick action row — Google Maps style: icon above label */}
+      <div
+        style={{
+          display: "flex",
+          gap: 4,
+          marginBottom: 16,
+          paddingBottom: 16,
+          borderBottom: "0.5px solid #E8E6F0",
+          flexWrap: "wrap",
+        }}
+      >
+        <QuickActionIcon
+          icon="🧭"
+          label="directions"
+          onClick={handleDirections}
+        />
+        <QuickActionIcon
+          icon="🔖"
+          label={isSaved ? "saved" : "save"}
+          onClick={handleSaveClick}
+        />
+        <VoteButtons reportId={report.id} />
+        <QuickActionIcon
+          icon="🔗"
+          label={shareCopied ? "copied!" : "share"}
+          onClick={handleShare}
+        />
+      </div>
+
       <RescueActions
         report={report}
         session={session}
@@ -192,7 +269,6 @@ export default function DetailPanel({
           flexDirection: "column",
         }}
       >
-        {/* Drag handle */}
         <div
           style={{
             padding: "12px 0 8px",
@@ -212,7 +288,6 @@ export default function DetailPanel({
           />
         </div>
 
-        {/* Photo */}
         <div style={{ position: "relative", flexShrink: 0 }}>
           <img
             src={report.photo_url}
@@ -226,58 +301,77 @@ export default function DetailPanel({
           />
         </div>
 
-        {/* Scrollable content */}
         <div style={{ padding: 16, overflowY: "auto", flex: 1 }}>{content}</div>
       </div>
     );
   }
 
-  // Desktop sidebar
+  // Desktop: slides in from the left, docked right after the Sidebar rail
   return (
     <div
       style={{
-        width: 300,
-        background: "rgba(255,255,255,0.95)",
-        backdropFilter: "blur(12px)",
-        borderLeft: "0.5px solid #E8E6F0",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-        flexShrink: 0,
+        position: "fixed",
+        top: 80,
+        left: 88,
+        bottom: 0,
+        width: 320,
+        zIndex: 9999,
+        animation: "whiskr-panel-slide-in 0.25s ease",
       }}
     >
-      <div style={{ position: "relative" }}>
-        <img
-          src={report.photo_url}
-          alt="cat"
-          style={{ width: "100%", height: 180, objectFit: "cover" }}
-        />
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          style={{
-            position: "absolute",
-            top: 10,
-            right: 10,
-            width: 28,
-            height: 28,
-            borderRadius: "50%",
-            border: "none",
-            background: "rgba(255,255,255,0.9)",
-            cursor: "pointer",
-            fontSize: 14,
-            color: "#4A3F7A",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          ✕
-        </button>
+      <style>{`
+        @keyframes whiskr-panel-slide-in {
+          from { transform: translateX(-100%); }
+          to { transform: translateX(0); }
+        }
+      `}</style>
+
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          background: "rgba(255,255,255,0.98)",
+          boxShadow: "4px 0 24px rgba(74,63,122,0.15)",
+          borderRadius: "16px 0 0 0",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        <div style={{ position: "relative" }}>
+          <img
+            src={report.photo_url}
+            alt="cat"
+            style={{ width: "100%", height: 180, objectFit: "cover" }}
+          />
+        </div>
+        <div style={{ padding: 16, flex: 1, overflowY: "auto" }}>{content}</div>
       </div>
-      <div style={{ padding: 16, flex: 1, overflowY: "auto" }}>{content}</div>
+
+      {/* Arrow tab — sticks out from the right edge, closes the panel */}
+      <button
+        onClick={onClose}
+        style={{
+          position: "absolute",
+          top: "50%",
+          right: -22,
+          transform: "translateY(-50%)",
+          width: 22,
+          height: 52,
+          borderRadius: "0 12px 12px 0",
+          border: "none",
+          background: "white",
+          boxShadow: "2px 0 8px rgba(74,63,122,0.15)",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 14,
+          color: "#8B80C9",
+        }}
+      >
+        ‹
+      </button>
     </div>
   );
 }

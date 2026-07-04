@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase/client";
 import type { Session } from "@supabase/supabase-js";
-import type { Report, RecentlyViewed } from "../types";
+import type { Report, RecentlyViewed, Profile } from "../types";
 import dynamic from "next/dynamic";
 import Navbar from "./components/layout/navbar";
 import Sidebar from "./components/layout/sidebar";
@@ -34,6 +34,7 @@ export default function Home() {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [savedReports, setSavedReports] = useState<Report[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [recentlyViewed, setRecentlyViewed] = useState<RecentlyViewed[]>([]);
 
   useEffect(() => {
@@ -118,6 +119,19 @@ export default function Home() {
     if (session?.user.id) {
       loadSavedReports(session.user.id);
     }
+  }, [session?.user.id]);
+
+  useEffect(() => {
+    async function loadProfile() {
+      if (!session?.user.id) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+      if (data) setProfile(data);
+    }
+    loadProfile();
   }, [session?.user.id]);
 
   async function handleToggleSave() {
@@ -225,6 +239,8 @@ export default function Home() {
           activeRailItem={activeRailItem}
           onSelectRailItem={setActiveRailItem}
           onSelectPlace={(lat, lng) => searchNavigateRef.current?.(lat, lng)}
+          profile={profile}
+          onProfileSaved={setProfile}
         />
       </div>
 
