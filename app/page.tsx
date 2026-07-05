@@ -24,6 +24,7 @@ export default function Home() {
   const [showReport, setShowReport] = useState(false);
   const [reportPos, setReportPos] = useState<[number, number] | null>(null);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeRailItem, setActiveRailItem] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [filterTypes, setFilterTypes] = useState<string[]>([]);
@@ -45,6 +46,10 @@ export default function Home() {
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
+
+  useEffect(() => {
+    if (selectedReport) setSidebarCollapsed(false);
+  }, [selectedReport]);
 
   useEffect(() => {
     function handleRescueCompleted(e: Event) {
@@ -256,6 +261,7 @@ export default function Home() {
           savedReports={savedReports}
           recentlyViewed={recentlyViewed}
           isMobile={isMobile}
+          collapsed={sidebarCollapsed}
           onSelect={(item) => {
             // RecentlyViewed items are lightweight snapshots; if the full
             // report is still loaded on the map, prefer that richer object.
@@ -296,9 +302,11 @@ export default function Home() {
                 report={selectedReport}
                 session={session}
                 onClose={() => setSelectedReport(null)}
+                onCollapseSidebar={() => {}}
                 onAuthRequired={() => setShowAuth(true)}
                 isSaved={savedReports.some((r) => r.id === selectedReport.id)}
                 onToggleSave={handleToggleSave}
+                isMobile={isMobile}
               />
             </div>
           )}
@@ -309,9 +317,11 @@ export default function Home() {
             report={selectedReport}
             session={session}
             onClose={() => setSelectedReport(null)}
+            onCollapseSidebar={() => setSidebarCollapsed(true)}
             onAuthRequired={() => setShowAuth(true)}
             isSaved={savedReports.some((r) => r.id === selectedReport.id)}
             onToggleSave={handleToggleSave}
+            isMobile={isMobile}
           />
         )}
       </div>

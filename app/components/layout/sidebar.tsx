@@ -8,6 +8,7 @@ type Props = {
   recentlyViewed: RecentlyViewed[];
   onSelect: (report: Report | RecentlyViewed) => void;
   isMobile: boolean;
+  collapsed: boolean;
 };
 
 const typeLabels: Record<string, string> = {
@@ -206,12 +207,13 @@ function RailItem({
   );
 }
 
-// ---------- Desktop: static column, unchanged from before ----------
+// ---------- Desktop: collapsible column ----------
 function DesktopSidebar({
   savedReports,
   recentlyViewed,
   onSelect,
-}: Omit<Props, "isMobile">) {
+  collapsed,
+}: Omit<Props, "isMobile"> & { collapsed: boolean }) {
   const [open, setOpen] = useState<"saved" | "recent" | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -234,6 +236,10 @@ function DesktopSidebar({
     <div
       ref={ref}
       style={{
+        position: "fixed",
+        top: 0,
+        left: collapsed ? -SIDEBAR_WIDTH : 0,
+        bottom: 0,
         width: SIDEBAR_WIDTH,
         background: "white",
         display: "flex",
@@ -242,8 +248,7 @@ function DesktopSidebar({
         padding: "16px 0",
         gap: 4,
         zIndex: 9998,
-        flexShrink: 0,
-        position: "relative",
+        transition: "left 0.25s ease",
       }}
     >
       <button
@@ -316,7 +321,7 @@ function MobileSidebar({
   savedReports,
   recentlyViewed,
   onSelect,
-}: Omit<Props, "isMobile">) {
+}: Omit<Props, "isMobile" | "collapsed">) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [tab, setTab] = useState<"saved" | "recent">("saved");
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -465,6 +470,7 @@ export default function Sidebar({
   recentlyViewed,
   onSelect,
   isMobile,
+  collapsed,
 }: Props) {
   if (isMobile) {
     return (
@@ -480,6 +486,7 @@ export default function Sidebar({
       savedReports={savedReports}
       recentlyViewed={recentlyViewed}
       onSelect={onSelect}
+      collapsed={collapsed}
     />
   );
 }

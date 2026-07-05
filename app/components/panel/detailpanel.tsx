@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { Report } from "../../../types";
 import type { Session } from "@supabase/supabase-js";
 import VoteButtons from "./votebuttons";
@@ -10,9 +10,11 @@ type Props = {
   report: Report;
   session: Session;
   onClose: () => void;
+  onCollapseSidebar: () => void;
   onAuthRequired: () => void;
   isSaved: boolean;
   onToggleSave: () => void;
+  isMobile: boolean;
 };
 
 const statusLabels: Record<string, { label: string; color: string }> = {
@@ -98,28 +100,132 @@ export default function DetailPanel({
   report,
   session,
   onClose,
+  onCollapseSidebar,
   onAuthRequired,
   isSaved,
   onToggleSave,
+  isMobile,
 }: Props) {
-  const [isMobile, setIsMobile] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-  const [dragStartY, setDragStartY] = useState<number | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const [shareCopied, setShareCopied] = useState(false);
   const status = statusLabels[report.status] ?? statusLabels.active;
 
-  useEffect(() => {
-    function check() {
-      setIsMobile(window.innerWidth < 768);
+  // --- Mobile bottom sheet: transform-based drag + snap animation ---
+  const COLLAPSED_RATIO = 0.45;
+  const EXPANDED_RATIO = 0.88;
+  const CLOSE_DRAG_THRESHOLD = 90; // px dragged past collapsed before it closes
+
+  function computeMetrics() {
+    if (typeof window === "undefined") {
+      return { expandedHeight: 0, collapsedTranslate: 0 };
     }
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
+    const expandedHeight = window.innerHeight * EXPANDED_RATIO;
+    const collapsedHeight = window.innerHeight * COLLAPSED_RATIO;
+    return {
+      expandedHeight,
+      collapsedTranslate: expandedHeight - collapsedHeight,
+    };
+  }
+
+  const [sheetPhase, setSheetPhase] = useState<
+    "collapsed" | "expanded" | "closing"
+  >("collapsed");
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef({ startY: 0, startTranslate: 0 });
+  const sheetHeightRef = useRef(computeMetrics().expandedHeight);
+  const collapsedTranslateRef = useRef(computeMetrics().collapsedTranslate);
+  // Start already snapped to the peek position — no top-to-bottom jump on mount
+  const [translateY, setTranslateY] = useState(
+    () => computeMetrics().collapsedTranslate,
+  );
+
+  useEffect(() => {
+    function measure() {
+      const { expandedHeight, collapsedTranslate } = computeMetrics();
+      sheetHeightRef.current = expandedHeight;
+      collapsedTranslateRef.current = collapsedTranslate;
+      // Keep the sheet snapped to its current phase after a resize
+      setTranslateY(sheetPhase === "expanded" ? 0 : collapsedTranslate);
+    }
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    setExpanded(false);
+    // New report opened — always re-open at the collapsed (peek) height
+    setSheetPhase("collapsed");
+    setTranslateY(collapsedTranslateRef.current);
   }, [report.id]);
+
+  function handleSheetTouchStart(e: React.TouchEvent) {
+    dragStartRef.current = {
+      startY: e.touches[0].clientY,
+      startTranslate: translateY,
+    };
+    setIsDragging(true);
+  }
+
+  function handleSheetTouchMove(e: React.TouchEvent) {
+    const delta = e.touches[0].clientY - dragStartRef.current.startY;
+    const next = Math.min(
+      Math.max(0, dragStartRef.current.startTranslate + delta),
+      sheetHeightRef.current,
+    );
+    setTranslateY(next);
+  }
+
+  function handleSheetTouchEnd() {
+    setIsDragging(false);
+
+    if (translateY < collapsedTranslateRef.current / 2) {
+      // Dragged up past the halfway point to peek — snap fully open
+      setSheetPhase("expanded");
+      setTranslateY(0);
+    } else if (
+      translateY >
+      collapsedTranslateRef.current + CLOSE_DRAG_THRESHOLD
+    ) {
+      // Dragged well below the peek height — slide all the way down,
+      // then actually close once the animation finishes
+      setSheetPhase("closing");
+      setTranslateY(sheetHeightRef.current);
+      setTimeout(onClose, 300);
+    } else {
+      // Snap back to the peek height
+      setSheetPhase("collapsed");
+      setTranslateY(collapsedTranslateRef.current);
+    }
+  }
+
+  // How "open" the sheet currently is, 0 (peek) to 1 (fully expanded) —
+  // drives the backdrop's dimming so it fades in smoothly as you drag up
+  const openProgress =
+    collapsedTranslateRef.current > 0
+      ? 1 - translateY / collapsedTranslateRef.current
+      : 0;
+
+  useEffect(() => {
+    if (isMobile) return; // mobile already closes via swipe-down
+
+    function handleClickOutside(e: MouseEvent | TouchEvent) {
+      const target = e.target as HTMLElement;
+      // Don't fight with clicking a different pin — its own click handler
+      // already manages switching the selection.
+      if (target.closest(".leaflet-marker-icon")) return;
+
+      if (panelRef.current && !panelRef.current.contains(target)) {
+        onClose();
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [isMobile, onClose]);
 
   function handleDirections() {
     window.open(
@@ -240,75 +346,91 @@ export default function DetailPanel({
   );
 
   if (isMobile) {
+    const sheetTransition = isDragging
+      ? "none"
+      : "transform 0.32s cubic-bezier(0.32, 0.72, 0, 1)";
+
     return (
-      <div
-        onTouchStart={(e) => setDragStartY(e.touches[0].clientY)}
-        onTouchEnd={(e) => {
-          if (dragStartY === null) return;
-          const delta = e.changedTouches[0].clientY - dragStartY;
-          if (delta < -40) setExpanded(true);
-          else if (delta > 40) {
-            if (expanded) setExpanded(false);
-            else onClose();
-          }
-          setDragStartY(null);
-        }}
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 500,
-          background: "rgba(255,255,255,0.98)",
-          borderRadius: "20px 20px 0 0",
-          boxShadow: "0 -4px 24px rgba(74,63,122,0.15)",
-          overflow: "hidden",
-          transition: "max-height 0.3s ease",
-          maxHeight: expanded ? "90vh" : "60vh",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
+      <>
+        {/* Dimming backdrop — fades in as the sheet gets dragged up */}
+        <div
+          onClick={onClose}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: `rgba(15,13,26,${0.35 * Math.max(0, Math.min(1, openProgress))})`,
+            zIndex: 499,
+            pointerEvents: openProgress > 0.05 ? "auto" : "none",
+            transition: isDragging ? "none" : "background 0.32s ease",
+          }}
+        />
+
         <div
           style={{
-            padding: "12px 0 8px",
-            cursor: "grab",
-            flexShrink: 0,
-            touchAction: "none",
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: sheetHeightRef.current || "88vh",
+            zIndex: 500,
+            background: "rgba(255,255,255,0.98)",
+            borderRadius: "20px 20px 0 0",
+            boxShadow: "0 -4px 24px rgba(74,63,122,0.18)",
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+            transform: `translateY(${translateY}px)`,
+            transition: sheetTransition,
+            willChange: "transform",
           }}
         >
           <div
+            onTouchStart={handleSheetTouchStart}
+            onTouchMove={handleSheetTouchMove}
+            onTouchEnd={handleSheetTouchEnd}
             style={{
-              width: 36,
-              height: 4,
-              background: "#E8E6F0",
-              borderRadius: 2,
-              margin: "0 auto",
+              padding: "12px 0 8px",
+              cursor: "grab",
+              flexShrink: 0,
+              touchAction: "none",
             }}
-          />
-        </div>
+          >
+            <div
+              style={{
+                width: 36,
+                height: 4,
+                background: isDragging ? "#8B80C9" : "#E8E6F0",
+                borderRadius: 2,
+                margin: "0 auto",
+                transition: "background 0.15s ease",
+              }}
+            />
+          </div>
 
-        <div style={{ position: "relative", flexShrink: 0 }}>
-          <img
-            src={report.photo_url}
-            alt="cat"
-            style={{
-              width: "100%",
-              height: expanded ? 200 : 140,
-              objectFit: "cover",
-              transition: "height 0.3s ease",
-            }}
-          />
-        </div>
+          <div style={{ position: "relative", flexShrink: 0 }}>
+            <img
+              src={report.photo_url}
+              alt="cat"
+              style={{
+                width: "100%",
+                height: 160 + openProgress * 60,
+                objectFit: "cover",
+              }}
+            />
+          </div>
 
-        <div style={{ padding: 16, overflowY: "auto", flex: 1 }}>{content}</div>
-      </div>
+          <div style={{ padding: 16, overflowY: "auto", flex: 1 }}>
+            {content}
+          </div>
+        </div>
+      </>
     );
   }
 
   // Desktop: slides in from the left, docked right after the Sidebar rail
   return (
     <div
+      ref={panelRef}
       style={{
         position: "fixed",
         top: 80,
@@ -348,9 +470,12 @@ export default function DetailPanel({
         <div style={{ padding: 16, flex: 1, overflowY: "auto" }}>{content}</div>
       </div>
 
-      {/* Arrow tab — sticks out from the right edge, closes the panel */}
+      {/* Arrow tab — closes the panel AND collapses the sidebar */}
       <button
-        onClick={onClose}
+        onClick={() => {
+          onClose();
+          onCollapseSidebar();
+        }}
         style={{
           position: "absolute",
           top: "50%",
