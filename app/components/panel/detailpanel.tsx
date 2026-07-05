@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { supabase } from "../../../lib/supabase/client";
 import type { Report } from "../../../types";
 import type { Session } from "@supabase/supabase-js";
 import VoteButtons from "./votebuttons";
@@ -109,6 +110,66 @@ export default function DetailPanel({
   const panelRef = useRef<HTMLDivElement>(null);
   const [shareCopied, setShareCopied] = useState(false);
   const status = statusLabels[report.status] ?? statusLabels.active;
+
+  // Who reported it — looked up from the profiles table
+  const [reporterProfile, setReporterProfile] = useState<{
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadReporter() {
+      if (!report.reporter_id) {
+        setReporterProfile(null);
+        return;
+      }
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name, avatar_url")
+        .eq("id", report.reporter_id)
+        .single();
+      if (!cancelled) setReporterProfile(data ?? null);
+    }
+    loadReporter();
+    return () => {
+      cancelled = true;
+    };
+  }, [report.reporter_id]);
+
+  // Human-readable area name — reverse-geocoded from lat/lng via Nominatim
+  const [areaName, setAreaName] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadArea() {
+      setAreaName(null);
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${report.lat}&lon=${report.lng}&zoom=14`,
+        );
+        const data = await res.json();
+        if (cancelled) return;
+        const addr = data.address ?? {};
+        const area =
+          addr.suburb ||
+          addr.village ||
+          addr.town ||
+          addr.city_district ||
+          addr.city ||
+          addr.county ||
+          data.display_name?.split(",")[0] ||
+          null;
+        setAreaName(area);
+      } catch {
+        if (!cancelled) setAreaName(null);
+      }
+    }
+    loadArea();
+    return () => {
+      cancelled = true;
+    };
+  }, [report.lat, report.lng]);
 
   // --- Mobile bottom sheet: transform-based drag + snap animation ---
   const COLLAPSED_RATIO = 0.45;
@@ -250,6 +311,58 @@ export default function DetailPanel({
     onToggleSave();
   }
 
+  const reporterInfo = (reporterProfile || areaName) && (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        marginBottom: 12,
+      }}
+    >
+      {reporterProfile?.avatar_url ? (
+        <img
+          src={reporterProfile.avatar_url}
+          alt="reporter"
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: "50%",
+            objectFit: "cover",
+            flexShrink: 0,
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: "50%",
+            background: "#8B80C9",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "white",
+            fontSize: 11,
+            fontWeight: 600,
+            flexShrink: 0,
+          }}
+        >
+          {(reporterProfile?.display_name || "A").charAt(0).toUpperCase()}
+        </div>
+      )}
+      <div style={{ minWidth: 0 }}>
+        <p style={{ fontSize: 12, color: "#4A3F7A", fontWeight: 500 }}>
+          reported by {reporterProfile?.display_name || "a Whiskr user"}
+        </p>
+        {areaName && (
+          <p style={{ fontSize: 11, color: "#9CA3AF" }}>📍 near {areaName}</p>
+        )}
+      </div>
+    </div>
+  );
+
+  // Desktop content — unchanged icon-stack layout
   const content = (
     <>
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
@@ -278,6 +391,8 @@ export default function DetailPanel({
           {status.label}
         </span>
       </div>
+
+      {reporterInfo}
 
       {report.description && (
         <p
@@ -345,6 +460,147 @@ export default function DetailPanel({
     </>
   );
 
+  // Mobile content — header row with icon buttons, framed photo with
+  // caption overlay, and a horizontal scrollable pill action row
+  const mobileContent = (
+    <>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          marginBottom: 12,
+          gap: 8,
+        }}
+      >
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              padding: "3px 10px",
+              borderRadius: 20,
+              background: "#E7DBFF",
+              color: "#4A3F7A",
+            }}
+          >
+            {typeLabels[report.cat_type]}
+          </span>
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              padding: "3px 10px",
+              borderRadius: 20,
+              background: `${status.color}20`,
+              color: status.color,
+            }}
+          >
+            {status.label}
+          </span>
+        </div>
+
+        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+          <button
+            onClick={handleSaveClick}
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: "50%",
+              border: "none",
+              background: isSaved ? "#8B80C9" : "#E7DBFF",
+              color: isSaved ? "white" : "#4A3F7A",
+              fontSize: 14,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            🔖
+          </button>
+          <button
+            onClick={handleShare}
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: "50%",
+              border: "none",
+              background: "#E7DBFF",
+              color: "#4A3F7A",
+              fontSize: 13,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {shareCopied ? "✓" : "🔗"}
+          </button>
+        </div>
+      </div>
+
+      {reporterInfo}
+
+      {/* Horizontal scrollable pill action row */}
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          marginBottom: 16,
+          paddingBottom: 16,
+          borderBottom: "0.5px solid #E8E6F0",
+          overflowX: "auto",
+        }}
+      >
+        <button
+          onClick={handleDirections}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "10px 16px",
+            borderRadius: 24,
+            border: "none",
+            background: "#8B80C9",
+            color: "white",
+            fontSize: 13,
+            fontWeight: 500,
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+            flexShrink: 0,
+          }}
+        >
+          🧭 directions
+        </button>
+        <VoteButtons reportId={report.id} variant="pill" />
+        <RescueActions
+          report={report}
+          session={session}
+          onAuthRequired={onAuthRequired}
+          variant="pill"
+        />
+      </div>
+
+      {report.description && (
+        <p
+          style={{
+            fontSize: 13,
+            color: "#4A3F7A",
+            marginBottom: 12,
+            lineHeight: 1.5,
+          }}
+        >
+          {report.description}
+        </p>
+      )}
+
+      <p style={{ fontSize: 12, color: "#9CA3AF" }}>
+        ✓ last confirmed {timeAgo(report.last_confirmed_at)}
+      </p>
+    </>
+  );
+
   if (isMobile) {
     const sheetTransition = isDragging
       ? "none"
@@ -359,7 +615,7 @@ export default function DetailPanel({
             position: "fixed",
             inset: 0,
             background: `rgba(15,13,26,${0.35 * Math.max(0, Math.min(1, openProgress))})`,
-            zIndex: 499,
+            zIndex: 10004,
             pointerEvents: openProgress > 0.05 ? "auto" : "none",
             transition: isDragging ? "none" : "background 0.32s ease",
           }}
@@ -372,7 +628,7 @@ export default function DetailPanel({
             left: 0,
             right: 0,
             height: sheetHeightRef.current || "88vh",
-            zIndex: 500,
+            zIndex: 10005,
             background: "rgba(255,255,255,0.98)",
             borderRadius: "20px 20px 0 0",
             boxShadow: "0 -4px 24px rgba(74,63,122,0.18)",
@@ -407,20 +663,45 @@ export default function DetailPanel({
             />
           </div>
 
-          <div style={{ position: "relative", flexShrink: 0 }}>
-            <img
-              src={report.photo_url}
-              alt="cat"
+          <div style={{ padding: "0 16px", marginTop: 8, flexShrink: 0 }}>
+            <div
               style={{
-                width: "100%",
+                position: "relative",
+                borderRadius: 16,
+                overflow: "hidden",
                 height: 160 + openProgress * 60,
-                objectFit: "cover",
               }}
-            />
+            >
+              <img
+                src={report.photo_url}
+                alt="cat"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+              />
+              {/* Caption overlay — framed-card look, like Google's place photo */}
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  padding: "20px 12px 10px",
+                  background:
+                    "linear-gradient(to top, rgba(15,13,26,0.65), transparent)",
+                }}
+              >
+                <p style={{ color: "white", fontSize: 11, fontWeight: 500 }}>
+                  🕐 reported {timeAgo(report.created_at)}
+                </p>
+              </div>
+            </div>
           </div>
 
           <div style={{ padding: 16, overflowY: "auto", flex: 1 }}>
-            {content}
+            {mobileContent}
           </div>
         </div>
       </>

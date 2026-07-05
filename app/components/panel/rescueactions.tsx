@@ -9,6 +9,7 @@ type Props = {
   report: Report;
   session: Session;
   onAuthRequired: () => void;
+  variant?: "icon" | "pill";
 };
 
 function ActionIcon({
@@ -73,16 +74,59 @@ function ActionIcon({
   );
 }
 
+function PillButton({
+  icon,
+  label,
+  onClick,
+  active,
+  disabled,
+  color,
+}: {
+  icon: string;
+  label: string;
+  onClick: () => void;
+  active?: boolean;
+  disabled?: boolean;
+  color?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        padding: "10px 16px",
+        borderRadius: 24,
+        border: "none",
+        background: active ? (color ?? "#8B80C9") : "#E7DBFF",
+        color: active ? "white" : (color ?? "#4A3F7A"),
+        fontSize: 13,
+        fontWeight: 500,
+        cursor: disabled ? "default" : "pointer",
+        whiteSpace: "nowrap",
+        flexShrink: 0,
+        opacity: disabled ? 0.5 : 1,
+      }}
+    >
+      <span>{icon}</span> {label}
+    </button>
+  );
+}
+
 export default function RescueActions({
   report,
   session,
   onAuthRequired,
+  variant = "icon",
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [contact, setContact] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   const isRescuer = report.rescuer_id === session.user.id;
+  const Button = variant === "pill" ? PillButton : ActionIcon;
 
   async function handleAccept() {
     if (!session) {
@@ -150,8 +194,8 @@ export default function RescueActions({
 
   if (report.status === "rescue_accepted" && isRescuer) {
     return (
-      <div style={{ width: "100%" }}>
-        {contact && (
+      <div style={{ width: variant === "pill" ? "auto" : "100%" }}>
+        {contact && variant !== "pill" && (
           <div
             style={{
               background: "#E7DBFF",
@@ -173,22 +217,22 @@ export default function RescueActions({
             <p style={{ fontSize: 13, color: "#4A3F7A" }}>{contact}</p>
           </div>
         )}
-        <div style={{ display: "flex", gap: 4 }}>
-          <ActionIcon
+        <div style={{ display: "flex", gap: variant === "pill" ? 8 : 4 }}>
+          <Button
             icon="✓"
             label="rescued"
             color="#10B981"
             disabled={loading}
             onClick={() => handleComplete("rescued")}
           />
-          <ActionIcon
+          <Button
             icon="✗"
             label="not found"
             color="#EF4444"
             disabled={loading}
             onClick={() => handleComplete("not_found")}
           />
-          <ActionIcon
+          <Button
             icon="↩"
             label="release"
             color="#9CA3AF"
@@ -216,7 +260,7 @@ export default function RescueActions({
   }
 
   return (
-    <div style={{ width: "100%" }}>
+    <div style={{ width: variant === "pill" ? "auto" : "100%" }}>
       {error && (
         <p
           style={{
@@ -229,7 +273,7 @@ export default function RescueActions({
           {error}
         </p>
       )}
-      <ActionIcon
+      <Button
         icon="🐾"
         label={loading ? "accepting..." : "accept rescue"}
         color="#4A3F7A"

@@ -289,26 +289,16 @@ export default function Home() {
           />
 
           {isMobile && selectedReport && (
-            <div
-              style={{
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                right: 0,
-                zIndex: 500,
-              }}
-            >
-              <DetailPanel
-                report={selectedReport}
-                session={session}
-                onClose={() => setSelectedReport(null)}
-                onCollapseSidebar={() => {}}
-                onAuthRequired={() => setShowAuth(true)}
-                isSaved={savedReports.some((r) => r.id === selectedReport.id)}
-                onToggleSave={handleToggleSave}
-                isMobile={isMobile}
-              />
-            </div>
+            <DetailPanel
+              report={selectedReport}
+              session={session}
+              onClose={() => setSelectedReport(null)}
+              onCollapseSidebar={() => {}}
+              onAuthRequired={() => setShowAuth(true)}
+              isSaved={savedReports.some((r) => r.id === selectedReport.id)}
+              onToggleSave={handleToggleSave}
+              isMobile={isMobile}
+            />
           )}
         </div>
 

@@ -276,7 +276,7 @@ export default function WhiskrMap({
       <div
         style={{
           position: "absolute",
-          bottom: 20,
+          bottom: "calc(90px + env(safe-area-inset-bottom, 0px))",
           right: 20,
           zIndex: 1000,
           display: "flex",

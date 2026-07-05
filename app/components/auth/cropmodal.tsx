@@ -7,6 +7,8 @@ type Props = {
   imageSrc: string;
   onCancel: () => void;
   onCropped: (file: File) => void;
+  aspect?: number;
+  cropShape?: "round" | "rect";
 };
 
 // Draws the cropped region onto a canvas and returns it as a File.
@@ -48,7 +50,13 @@ async function getCroppedImageFile(
   return new File([blob], `avatar-${Date.now()}.jpg`, { type: "image/jpeg" });
 }
 
-export default function CropModal({ imageSrc, onCancel, onCropped }: Props) {
+export default function CropModal({
+  imageSrc,
+  onCancel,
+  onCropped,
+  aspect = 1,
+  cropShape = "round",
+}: Props) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
@@ -125,8 +133,8 @@ export default function CropModal({ imageSrc, onCancel, onCropped }: Props) {
             image={imageSrc}
             crop={crop}
             zoom={zoom}
-            aspect={1}
-            cropShape="round"
+            aspect={aspect}
+            cropShape={cropShape}
             showGrid={false}
             onCropChange={setCrop}
             onZoomChange={setZoom}

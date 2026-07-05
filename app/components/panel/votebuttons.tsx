@@ -5,6 +5,7 @@ import { supabase } from "../../../lib/supabase/client";
 
 type Props = {
   reportId: string;
+  variant?: "icon" | "pill";
 };
 
 function ActionIcon({
@@ -69,7 +70,48 @@ function ActionIcon({
   );
 }
 
-export default function VoteButtons({ reportId }: Props) {
+function PillButton({
+  icon,
+  label,
+  onClick,
+  active,
+  disabled,
+  color,
+}: {
+  icon: string;
+  label: string;
+  onClick: () => void;
+  active?: boolean;
+  disabled?: boolean;
+  color?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        padding: "10px 16px",
+        borderRadius: 24,
+        border: "none",
+        background: active ? (color ?? "#8B80C9") : "#E7DBFF",
+        color: active ? "white" : (color ?? "#4A3F7A"),
+        fontSize: 13,
+        fontWeight: 500,
+        cursor: disabled ? "default" : "pointer",
+        whiteSpace: "nowrap",
+        flexShrink: 0,
+        opacity: disabled ? 0.5 : 1,
+      }}
+    >
+      <span>{icon}</span> {label}
+    </button>
+  );
+}
+
+export default function VoteButtons({ reportId, variant = "icon" }: Props) {
   const [stillHere, setStillHere] = useState(0);
   const [notHere, setNotHere] = useState(0);
   const [voted, setVoted] = useState(false);
@@ -103,9 +145,11 @@ export default function VoteButtons({ reportId }: Props) {
     setLoading(false);
   }
 
+  const Button = variant === "pill" ? PillButton : ActionIcon;
+
   return (
     <>
-      <ActionIcon
+      <Button
         icon="✓"
         label={`${stillHere} here`}
         color="#10B981"
@@ -113,7 +157,7 @@ export default function VoteButtons({ reportId }: Props) {
         disabled={voted || loading}
         onClick={() => handleVote("still_here")}
       />
-      <ActionIcon
+      <Button
         icon="✗"
         label={`${notHere} gone`}
         color="#EF4444"
