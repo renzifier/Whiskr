@@ -18,7 +18,6 @@ export type Report = {
   status: ReportStatus;
   last_confirmed_at: string;
   reporter_id: string | null;
-  reporter_contact: string | null;
   rescuer_id: string | null;
   rescue_accepted_at: string | null;
   rescue_outcome_at: string | null;

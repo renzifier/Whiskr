@@ -107,9 +107,14 @@ export default function Home() {
 
   // Load saved (bookmarked) reports for the logged-in user
   async function loadSavedReports(userId: string) {
+    // Embedding via PostgREST relies on the actual foreign key, so this
+    // has to go through the `reports` table rather than the public_reports
+    // view — instead, explicitly list columns to exclude reporter_contact.
     const { data } = await supabase
       .from("saved_reports")
-      .select("report_id, reports(*)")
+      .select(
+        "report_id, reports(id,lat,lng,cat_type,description,photo_url,status,last_confirmed_at,reporter_id,rescuer_id,rescue_accepted_at,rescue_outcome_at,created_at,updated_at)",
+      )
       .eq("user_id", userId);
 
     if (data) {

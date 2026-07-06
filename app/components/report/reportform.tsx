@@ -64,20 +64,38 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const { error: insertError } = await supabase.from("reports").insert({
-      lat,
-      lng,
-      cat_type: catType,
-      description: description || null,
-      reporter_contact: contact || null,
-      photo_url: urlData.publicUrl,
-      reporter_id: user?.id ?? null,
-    });
+    const { data: newReport, error: insertError } = await supabase
+      .from("reports")
+      .insert({
+        lat,
+        lng,
+        cat_type: catType,
+        description: description || null,
+        photo_url: urlData.publicUrl,
+        reporter_id: user?.id ?? null,
+      })
+      .select()
+      .single();
 
-    if (insertError) {
+    if (insertError || !newReport) {
       setError("failed to submit report");
       setLoading(false);
       return;
+    }
+
+    // Contact info lives in its own protected table now — it's never
+    // broadcast over realtime and only readable by the reporter or the
+    // rescuer who accepts this specific report.
+    if (contact) {
+      const { error: contactError } = await supabase
+        .from("report_contacts")
+        .insert({ report_id: newReport.id, contact });
+
+      if (contactError) {
+        // The report itself was created successfully — don't block on this,
+        // but surface it so it's not silently lost.
+        console.error("failed to save contact info:", contactError);
+      }
     }
 
     setLoading(false);

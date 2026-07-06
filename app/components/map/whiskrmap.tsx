@@ -156,11 +156,13 @@ export default function WhiskrMap({
 
   useEffect(() => {
     async function load() {
+      // Query the public-safe view — it excludes reporter_contact, which
+      // should only ever be revealed via the accept_rescue RPC.
       const { data } = await supabase
-        .from("reports")
+        .from("public_reports")
         .select("*")
         .in("status", ["active", "stale", "rescue_accepted"]);
-      if (data) setReports(data);
+      if (data) setReports(data as Report[]);
     }
     load();
   }, []);
