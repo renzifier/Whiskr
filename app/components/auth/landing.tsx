@@ -15,7 +15,6 @@ export default function Landing({ onLogin, onSignUp }: Props) {
         flexDirection: "column",
       }}
     >
-      {/* Mobile: stacked, Desktop: split */}
       <div
         className="wh-landing-wrap"
         style={{
@@ -24,7 +23,6 @@ export default function Landing({ onLogin, onSignUp }: Props) {
           flexDirection: "column",
         }}
       >
-        {/* Left / Top — content */}
         <div
           className="wh-landing-left"
           style={{
@@ -37,7 +35,6 @@ export default function Landing({ onLogin, onSignUp }: Props) {
           }}
         >
           <div style={{ maxWidth: 400, margin: "0 auto", width: "100%" }}>
-            {/* Logo */}
             <div
               style={{
                 display: "flex",
@@ -65,7 +62,6 @@ export default function Landing({ onLogin, onSignUp }: Props) {
               </span>
             </div>
 
-            {/* Tag */}
             <div
               style={{
                 display: "inline-block",
@@ -82,7 +78,6 @@ export default function Landing({ onLogin, onSignUp }: Props) {
               live cat rescue map
             </div>
 
-            {/* Headline */}
             <h1
               style={{
                 color: "white",
@@ -98,7 +93,6 @@ export default function Landing({ onLogin, onSignUp }: Props) {
               deserves a <span style={{ color: "#8B80C9" }}>spotter</span>
             </h1>
 
-            {/* Subheadline */}
             <p
               style={{
                 color: "rgba(255,255,255,0.45)",
@@ -112,7 +106,6 @@ export default function Landing({ onLogin, onSignUp }: Props) {
               volunteer goes. that's whiskr.
             </p>
 
-            {/* Pin legend */}
             <div
               style={{
                 display: "flex",
@@ -124,7 +117,7 @@ export default function Landing({ onLogin, onSignUp }: Props) {
               {[
                 { color: "#8B80C9", label: "stray" },
                 { color: "#EF4444", label: "missing" },
-                { color: "#3B82F6", label: "rescue accepted" },
+                { color: "#3B82F6", label: "volunteer assigned" },
                 { color: "#10B981", label: "colony" },
               ].map((pin) => (
                 <div
@@ -157,7 +150,6 @@ export default function Landing({ onLogin, onSignUp }: Props) {
               ))}
             </div>
 
-            {/* Buttons */}
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <button
                 onClick={onLogin}
@@ -206,7 +198,6 @@ export default function Landing({ onLogin, onSignUp }: Props) {
           </div>
         </div>
 
-        {/* Right / Bottom — map preview */}
         <div
           className="wh-landing-right"
           style={{
@@ -217,7 +208,6 @@ export default function Landing({ onLogin, onSignUp }: Props) {
             flex: 1,
           }}
         >
-          {/* Fake road grid */}
           <div style={{ position: "absolute", inset: 0 }}>
             <div
               style={{
@@ -271,7 +261,6 @@ export default function Landing({ onLogin, onSignUp }: Props) {
             />
           </div>
 
-          {/* Live badge */}
           <div
             style={{
               position: "absolute",
@@ -305,7 +294,6 @@ export default function Landing({ onLogin, onSignUp }: Props) {
             </span>
           </div>
 
-          {/* Fake pins */}
           {[
             {
               top: "20%",
@@ -317,7 +305,7 @@ export default function Landing({ onLogin, onSignUp }: Props) {
               top: "45%",
               left: "55%",
               color: "#3B82F6",
-              label: "rescue accepted",
+              label: "volunteer assigned",
             },
             { top: "25%", left: "72%", color: "#EF4444", label: "missing" },
             {
@@ -374,7 +362,6 @@ export default function Landing({ onLogin, onSignUp }: Props) {
             </div>
           ))}
 
-          {/* Bottom stat bar */}
           <div
             style={{
               position: "absolute",
@@ -415,7 +402,6 @@ export default function Landing({ onLogin, onSignUp }: Props) {
         </div>
       </div>
 
-      {/* Desktop: override to side by side */}
       <style>{`
         @media (min-width: 768px) {
           .wh-landing-wrap {

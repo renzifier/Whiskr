@@ -21,7 +21,7 @@ type Props = {
 const statusLabels: Record<string, { label: string; color: string }> = {
   active: { label: "active", color: "#10B981" },
   stale: { label: "stale", color: "#9CA3AF" },
-  rescue_accepted: { label: "rescue accepted", color: "#3B82F6" },
+  rescue_accepted: { label: "volunteer assigned", color: "#3B82F6" },
   rescued: { label: "rescued", color: "#10B981" },
   not_found: { label: "not found", color: "#9CA3AF" },
   resolved: { label: "resolved", color: "#9CA3AF" },
@@ -115,6 +115,7 @@ export default function DetailPanel({
   const [reporterProfile, setReporterProfile] = useState<{
     display_name: string | null;
     avatar_url: string | null;
+    created_at: string | null;
   } | null>(null);
 
   useEffect(() => {
@@ -125,8 +126,8 @@ export default function DetailPanel({
         return;
       }
       const { data } = await supabase
-        .from("profiles")
-        .select("display_name, avatar_url")
+        .from("public_profiles")
+        .select("display_name, avatar_url, created_at")
         .eq("id", report.reporter_id)
         .single();
       if (!cancelled) setReporterProfile(data ?? null);
@@ -354,6 +355,16 @@ export default function DetailPanel({
       <div style={{ minWidth: 0 }}>
         <p style={{ fontSize: 12, color: "#4A3F7A", fontWeight: 500 }}>
           reported by {reporterProfile?.display_name || "a Whiskr user"}
+          {reporterProfile?.created_at && (
+            <span style={{ color: "#9CA3AF", fontWeight: 400 }}>
+              {" "}
+              · member since{" "}
+              {new Date(reporterProfile.created_at).toLocaleDateString(
+                "en-US",
+                { month: "short", year: "numeric" },
+              )}
+            </span>
+          )}
         </p>
         {areaName && (
           <p style={{ fontSize: 11, color: "#9CA3AF" }}>📍 near {areaName}</p>

@@ -136,7 +136,16 @@ export default function VoteButtons({ reportId, variant = "icon" }: Props) {
     if (voted || loading) return;
     setLoading(true);
 
-    await supabase.from("votes").insert({ report_id: reportId, vote });
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      // redirect to auth modal / show login prompt instead of inserting
+      return;
+    }
+    await supabase
+      .from("votes")
+      .insert({ report_id: reportId, vote, voter_id: user.id });
 
     if (vote === "still_here") setStillHere((p) => p + 1);
     else setNotHere((p) => p + 1);

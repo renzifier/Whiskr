@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabase/client";
 import type { Report } from "../../../types";
 import type { Session } from "@supabase/supabase-js";
@@ -124,8 +124,46 @@ export default function RescueActions({
   const [loading, setLoading] = useState(false);
   const [contact, setContact] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [volunteerProfile, setVolunteerProfile] = useState<{
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null>(null);
+  const [volunteerRescueCount, setVolunteerRescueCount] = useState<
+    number | null
+  >(null);
 
   const isRescuer = report.rescuer_id === session.user.id;
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadVolunteer() {
+      const relevantStatus =
+        report.status === "rescue_accepted" || report.status === "rescued";
+      if (!relevantStatus || !report.rescuer_id) {
+        setVolunteerProfile(null);
+        setVolunteerRescueCount(null);
+        return;
+      }
+      const { data } = await supabase
+        .from("public_profiles")
+        .select("display_name, avatar_url")
+        .eq("id", report.rescuer_id)
+        .single();
+      if (!cancelled) setVolunteerProfile(data ?? null);
+
+      const { count } = await supabase
+        .from("public_reports")
+        .select("id", { count: "exact", head: true })
+        .eq("rescuer_id", report.rescuer_id)
+        .eq("status", "rescued");
+      if (!cancelled) setVolunteerRescueCount(count ?? 0);
+    }
+    loadVolunteer();
+    return () => {
+      cancelled = true;
+    };
+  }, [report.status, report.rescuer_id]);
+
   const Button = variant === "pill" ? PillButton : ActionIcon;
 
   async function handleAccept() {
@@ -141,7 +179,7 @@ export default function RescueActions({
     });
 
     if (error || !data?.success) {
-      setError(data?.error ?? "failed to accept rescue");
+      setError(data?.error ?? "failed to volunteer for this rescue");
     } else {
       setContact(data.contact);
     }
@@ -248,13 +286,56 @@ export default function RescueActions({
     return (
       <div
         style={{
-          textAlign: "center",
-          padding: "12px 0",
-          color: "#3B82F6",
-          fontSize: 13,
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "10px 12px",
+          background: "#EFF6FF",
+          borderRadius: 12,
         }}
       >
-        🔵 a volunteer is on the way
+        {volunteerProfile?.avatar_url ? (
+          <img
+            src={volunteerProfile.avatar_url}
+            alt="volunteer"
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: "50%",
+              objectFit: "cover",
+              flexShrink: 0,
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: "50%",
+              background: "#3B82F6",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "white",
+              fontSize: 13,
+              fontWeight: 600,
+              flexShrink: 0,
+            }}
+          >
+            {(volunteerProfile?.display_name || "V").charAt(0).toUpperCase()}
+          </div>
+        )}
+        <div>
+          <p style={{ fontSize: 13, color: "#3B82F6", fontWeight: 500 }}>
+            {volunteerProfile?.display_name || "a volunteer"} is on the way
+          </p>
+          {volunteerRescueCount !== null && volunteerRescueCount > 0 && (
+            <p style={{ fontSize: 11, color: "#60A5FA" }}>
+              helped with {volunteerRescueCount}{" "}
+              {volunteerRescueCount === 1 ? "rescue" : "rescues"}
+            </p>
+          )}
+        </div>
       </div>
     );
   }
@@ -275,7 +356,7 @@ export default function RescueActions({
       )}
       <Button
         icon="🐾"
-        label={loading ? "accepting..." : "accept rescue"}
+        label={loading ? "volunteering..." : "volunteer to help"}
         color="#4A3F7A"
         active
         disabled={loading}

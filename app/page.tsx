@@ -165,7 +165,7 @@ export default function Home() {
 
   async function handleLogout() {
     await supabase.auth.signOut();
-    setSelectedReport(null);
+    setSession(null);
   }
 
   if (loading) {
@@ -239,7 +239,6 @@ export default function Home() {
           onAuthRequired={() => setShowAuth(true)}
           onReport={() => setShowReport(true)}
           onLocate={() => {
-            console.log("locate clicked, fn:", locateFnRef.current);
             locateFnRef.current?.();
           }}
           filterTypes={filterTypes}
