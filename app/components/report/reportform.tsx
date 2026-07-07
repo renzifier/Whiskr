@@ -99,6 +99,11 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
     }
 
     setLoading(false);
+    window.dispatchEvent(
+      new CustomEvent("report-refresh", {
+        detail: { reportId: newReport.id },
+      }),
+    );
     onSuccess();
   }
 
