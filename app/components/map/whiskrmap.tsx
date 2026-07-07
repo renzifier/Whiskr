@@ -228,6 +228,8 @@ export default function WhiskrMap({
         },
       );
 
+    channel.subscribe();
+
     return () => {
       supabase.removeChannel(channel);
     };
