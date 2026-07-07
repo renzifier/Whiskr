@@ -9,14 +9,13 @@ A live, community-driven map for reporting, confirming, and rescuing stray, miss
 ## Table of Contents
 
 1. [What This App Does](#what-this-app-does)
-2. [Architecture Overview](#architecture-overview)
-3. [Tech Stack](#tech-stack)
-4. [Project Structure](#project-structure)
-5. [Setup Instructions](#setup-instructions)
-6. [Inferred Backend Schema](#inferred-backend-schema)
-7. [Feature Walkthrough](#feature-walkthrough)
-8. [Security Report](#security-report)
-9. [Known Gaps / Suggested Follow-ups](#known-gaps--suggested-follow-ups)
+2. [Tech Stack](#tech-stack)
+3. [Project Structure](#project-structure)
+4. [Setup Instructions](#setup-instructions)
+5. [Inferred Backend Schema](#inferred-backend-schema)
+6. [Feature Walkthrough](#feature-walkthrough)
+7. [Security Report](#security-report)
+8. [Known Gaps / Suggested Follow-ups](#known-gaps--suggested-follow-ups)
 
 ---
 
@@ -30,55 +29,6 @@ Core loop:
 2. Other users see the pin live on the map (via Supabase Realtime) and can vote **"Still Here"** / **"Gone"** to keep sightings honest.
 3. A volunteer taps **"Volunteer to Help"**, which reveals the reporter's private contact info to them only.
 4. The volunteer marks the outcome as **Rescued** or **Not Found**, which resolves the report and removes it from the live map.
-
----
-
-## Architecture Overview
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Browser (Client)                        │
-│                                                                   │
-│  app/page.tsx  (root client component, owns top-level state)    │
-│   ├─ Navbar            (search, filters, report/locate actions) │
-│   ├─ Sidebar            (Saved / Recently Viewed drawers)       │
-│   ├─ MapContainer → WhiskrMap  (Leaflet, dynamic-imported,      │
-│   │     ssr:false because Leaflet needs `window`)                │
-│   │     └─ PinLayer  (renders markers, applies filters)         │
-│   ├─ DetailPanel        (per-report side panel / bottom sheet)  │
-│   │     ├─ VoteButtons                                          │
-│   │     └─ RescueActions                                        │
-│   ├─ AuthModal          (login / signup)                        │
-│   └─ ReportForm          (new sighting submission)               │
-│                                                                   │
-│           all data access goes through lib/supabase/client.ts   │
-│                        (anon key, browser SDK)                   │
-└───────────────────────────────┬───────────────────────────────┘
-                                 │ HTTPS (PostgREST + Realtime WS)
-                                 ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                       Supabase Project                          │
-│  Postgres tables:  reports, profiles, saved_reports, votes,     │
-│                     report_contacts                             │
-│  Public views:      public_reports, public_profiles             │
-│  RPC functions:     accept_rescue, complete_rescue,              │
-│                      release_rescue   (assumed SECURITY DEFINER) │
-│  Storage buckets:   avatars, report-photos                      │
-│  Realtime:          postgres_changes on `reports` (INSERT/UPDATE)│
-│  Row Level Security: assumed to gate every table/view above     │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**Two Supabase clients exist and matter:**
-
-- `lib/supabase/client.ts` — a browser client (`createBrowserClient`), used everywhere in this codebase since every component here is `"use client"`.
-- `lib/supabase/server.ts` — a server client (`createServerClient`) that reads/writes auth cookies via `next/headers`. It isn't called anywhere in the files reviewed, but it's the piece you'd use for Server Components, Route Handlers, or middleware (e.g. protecting server-rendered routes or doing SSR data fetches). If the rest of the app is entirely client-rendered today, this file is set up for future use rather than currently wired in.
-
-**Rendering strategy:** the map (`MapContainer` → `WhiskrMap`) is loaded with `next/dynamic(..., { ssr: false })` because Leaflet touches `window`/`document` at import time and will crash during server rendering.
-
-**Realtime data flow:** on mount, `WhiskrMap` does one bulk fetch of `public_reports` filtered to `active | stale | rescue_accepted`, then opens a Supabase Realtime channel subscribed to raw Postgres `INSERT`/`UPDATE` events on the `reports` table. Terminal statuses (`rescued`, `not_found`, `resolved`) cause the pin to be removed from local state rather than updated. A `rescue-completed` browser `CustomEvent` is used to synchronize the map and the detail panel/sidebar when a rescue is completed elsewhere in the tree — this is a deliberate lightweight pub/sub inside the client instead of prop-drilling a callback through several layers.
-
-**State ownership:** `app/page.tsx` is the single source of truth for session, selected report, filters, search query, sidebar collapse state, saved reports, and recently-viewed history (the last one persisted to `localStorage`, capped at 10 entries). Everything else is presentational or owns only its own local UI state (drag position, modal open/close, form fields).
 
 ---
 
@@ -246,52 +196,3 @@ These should be `SECURITY DEFINER` functions that internally re-check the caller
 **Profile editing.** `EditProfileModal` lets a user set a display name and crop/upload a new avatar, then upserts `profiles`.
 
 **Responsive behavior.** Below 768px width, the map UI switches from a docked sidebar + side detail panel to a swipe-out drawer (`MobileSidebar`) and a draggable bottom sheet (`DetailPanel`'s mobile branch, with manual touch-drag physics and snap points at 45%/88% of viewport height).
-
----
-
-## Security Report
-
-This section evaluates what's verifiable from the client code. Anything that ultimately depends on RLS policies, RPC function bodies, or storage bucket policies **cannot be fully verified without that server-side code** — those items are flagged as "depends on backend config" rather than pass/fail.
-
-### Things done well
-
-- **Contact info is isolated.** Reporter contact lives in its own `report_contacts` table, is never selected as part of `public_reports`, and is never pushed over the `reports` Realtime channel. This is a deliberate design (see the comment in `page.tsx` and `rescueactions.tsx`) and is the right pattern for keeping PII out of a broadcast channel that literally everyone on the map is subscribed to.
-- **State-changing rescue transitions go through RPCs, not raw table writes.** `accept_rescue` / `complete_rescue` / `release_rescue` being RPCs (rather than the client doing `supabase.from("reports").update(...)`) means the authorization and status-transition logic can live server-side, where it can't be bypassed by a modified client. This only holds if those functions actually re-check `auth.uid()` and current status server-side — verify the function bodies, since an RPC that just runs the client-supplied values without checks provides no more protection than a direct table write.
-- **`saved_reports` explicitly avoids `select("*")`**, listing exact columns to reduce the blast radius if a sensitive column is ever added to `reports`.
-- **No secrets in the client bundle.** Only the Supabase anon key and URL are exposed, which is the intended public-facing credential; the actual security boundary is meant to be RLS.
-- **React's default escaping** means user-supplied text (`description`, `display_name`) is never at risk of DOM-based XSS through normal JSX rendering — no `dangerouslySetInnerHTML` is used for user content anywhere in the reviewed files. (`dangerouslySetInnerHTML`-equivalent usage does exist for Leaflet's `L.divIcon({ html: ... })` in `pinlayer.tsx` and `whiskrmap.tsx`, but the interpolated values there are fixed labels/colors from internal maps, not raw user input — so this is safe as written, but should stay that way if anyone edits it.)
-
-### Risks and gaps worth addressing
-
-1. **Vote spam has no server-side dedup.** `VoteButtons` inserts into `votes` with no user identifier and only prevents a second click via local component state (`voted`), which resets on every page reload or new tab. Anyone can vote an unlimited number of times by refreshing. If ballot-stuffing matters for this feature, `votes` needs either a `user_id` unique constraint per report (requiring auth) or an IP/device-based rate limit enforced server-side — client-side "already voted" flags provide no real protection.
-
-2. **Anonymous photo uploads to `report-photos` with a collision-prone filename.** `ReportForm` uploads to `report-photos` using `${Date.now()}.jpg` with no user-id prefix and no auth requirement — `reporter_id` is explicitly allowed to be `null` (`reporter_id: user?.id ?? null`). Two uploads in the same millisecond overwrite each other, and there's nothing here to stop anonymous, unlimited image uploads (potential storage-cost or abuse vector). Consider prefixing with a UUID and/or requiring auth for report creation, and confirm the storage bucket's RLS policy doesn't allow arbitrary overwrite/delete of other users' files.
-
-3. **The `report_contacts` insert is a direct client-side table write, not an RPC.** `ReportForm` inserts `{ report_id, contact }` straight from the browser after creating the report. This is safe **only if** RLS on `report_contacts` restricts inserts to rows where `report_id` belongs to a report the current session just created (or, for anonymous reporters, some other guarantee) — otherwise anything with the anon key could attach arbitrary contact strings to _any_ report_id, including ones they don't own. Worth explicitly testing this policy.
-
-4. **Realtime is subscribed to the raw `reports` table, not `public_reports`.** `whiskrmap.tsx` opens `postgres_changes` on `public.reports` directly for `INSERT`/`UPDATE`. The _initial_ load correctly uses the `public_reports` view, but the ongoing realtime stream bypasses that view entirely. If Supabase Realtime is configured to respect RLS on the base table for your project, this is fine; if not (or if a future column is added to `reports` and forgotten in the view), realtime updates could leak more than the view intends. Recommend either confirming Realtime's RLS enforcement is on for this table, or (more robustly) creating/using a realtime-safe publication that mirrors `public_reports`'s column set.
-
-5. **Nominatim (OpenStreetMap) is called directly from the browser**, both for reverse geocoding (`detailpanel.tsx`) and for place search (`navbar.tsx`). This exposes end-user IPs to a third party on every keystroke-debounced search and every report view, and Nominatim's usage policy asks for a valid `User-Agent`/referer and discourages heavy client-side autocomplete use — high traffic could get the app's IP range rate-limited or blocked. Consider proxying these calls through a server route with caching, both for ToS compliance and to control the debounce/volume server-side.
-
-6. **The `avatarFile`/report photo filename `..` check in `editprofilemodal.tsx` is dead code.** It checks `filename.includes("..")` on a string built entirely from `session.user.id` and `Date.now()` — values the app controls, not user input — so it can never trigger and provides no actual protection. It's harmless but reads as a security control that isn't one; if the intent was to guard against path traversal in filenames, that concern would need to move to wherever user-influenced input (e.g. `display_name`) might ever end up in a storage path, which currently it doesn't.
-
-7. **No visible client-side validation ceiling matches the DB.** `description` is capped at 300 chars client-side (`maxLength={300}`) which is good UX, but that's not a security control — confirm the same limit (or a reasonable one) is enforced by a DB constraint, since `maxLength` can be trivially bypassed by anyone not using the form UI.
-
-8. **Auth rate-limiting is entirely delegated to Supabase.** `AuthModal` has no client-side throttling on login/signup attempts. This is typically fine since Supabase Auth applies its own rate limits, but it's worth confirming those defaults haven't been loosened for this project.
-
-### Not evaluable from this code alone
-
-- Whether RLS is actually enabled and correctly scoped on every table (`reports`, `profiles`, `saved_reports`, `votes`, `report_contacts`) and view.
-- Whether the three rescue RPCs are `SECURITY DEFINER` and independently re-verify the caller and report state, or whether they simply trust their arguments.
-- Storage bucket policies for `avatars` and `report-photos` (public-read is fine; the write/overwrite/delete policies are what matter).
-- Whether `public_reports` and `public_profiles` are actually views with restricted columns, or full-access aliases — the naming and comments in the code strongly imply the former, but this file set contains no SQL to confirm it.
-
----
-
-## Known Gaps / Suggested Follow-ups
-
-- `lib/supabase/server.ts` exists but isn't used anywhere in the reviewed files — confirm whether it's intentionally unused today (pure client-rendered app) or whether some server-rendered route/middleware was expected to exist and is missing.
-- `types.ts` wasn't part of the reviewed file set; the shape of `Report`, `Profile`, `RecentlyViewed`, `CatType`, and `ReportStatus` above was reconstructed from usage and should be checked against the real file.
-- No automated tests were found among the reviewed files.
-- Styling is 100% inline `style={{...}}` objects with hardcoded hex colors, except `sidebar.tsx`'s mobile drawer, which uses CSS custom properties (`var(--color-surface)`, etc.) that aren't defined anywhere else in the reviewed files — worth confirming those variables are actually declared in `globals.css`, or the mobile drawer will render with browser-default fallback colors.
-- Tailwind is a dependency but no Tailwind class names appear in any reviewed component — likely present for future use or a partial migration.
