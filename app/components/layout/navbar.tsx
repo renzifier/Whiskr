@@ -52,6 +52,15 @@ export default function Navbar({
   const [showFilter, setShowFilter] = useState(false);
   const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
   const [catPos, setCatPos] = useState({ x: 16, y: 80 });
+  const [catFrame, setCatFrame] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(
+      () => setCatFrame((f) => (f === 0 ? 1 : 0)),
+      600,
+    );
+    return () => clearInterval(interval);
+  }, []);
   const draggingRef = useRef(false);
   const movedRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0, catX: 0, catY: 0 });
@@ -200,7 +209,7 @@ export default function Navbar({
   });
 
   const mobileActionRow = (
-    icon: string,
+    icon: React.ReactNode,
     label: string,
     onClick: () => void,
     active?: boolean,
@@ -221,7 +230,7 @@ export default function Navbar({
         textAlign: "left",
       }}
     >
-      <span style={{ fontSize: 16 }}>{icon}</span> {label}
+      <span style={{ fontSize: 16, display: "flex" }}>{icon}</span> {label}
     </button>
   );
 
@@ -264,7 +273,11 @@ export default function Navbar({
                 pointerEvents: "auto",
               }}
             >
-              <span style={{ fontSize: 18 }}>🐾</span>
+              <img
+                src="/icons/whiskr-icon.png"
+                alt=""
+                style={{ width: 18, height: 18 }}
+              />
               <span style={{ fontWeight: 700, color: "#4A3F7A", fontSize: 15 }}>
                 whiskr
               </span>
@@ -288,7 +301,15 @@ export default function Navbar({
                 flexShrink: 1,
               }}
             >
-              <span style={{ fontSize: 14 }}>{isMobile ? "🐾" : "🔍"}</span>
+              {isMobile ? (
+                <img
+                  src="/icons/whiskr-icon.png"
+                  alt=""
+                  style={{ width: 14, height: 14 }}
+                />
+              ) : (
+                <span style={{ fontSize: 14 }}>🔍</span>
+              )}
               <input
                 type="text"
                 value={searchQuery}
@@ -365,7 +386,12 @@ export default function Navbar({
                       color: "#4A3F7A",
                     }}
                   >
-                    📍 {place.display_name}
+                    <img
+                      src="/icons/pin-button.png"
+                      alt=""
+                      style={{ width: 12, height: 12, marginRight: 4 }}
+                    />{" "}
+                    {place.display_name}
                   </button>
                 ))}
               </div>
@@ -380,7 +406,12 @@ export default function Navbar({
               </button>
 
               <button style={pillStyle(false)} onClick={onLocate}>
-                📍 locate me
+                <img
+                  src="/icons/pin-button.png"
+                  alt=""
+                  style={{ width: 14, height: 14 }}
+                />{" "}
+                locate me
               </button>
 
               <div ref={filterRef} style={{ position: "relative" }}>
@@ -410,7 +441,12 @@ export default function Navbar({
                   )
                 }
               >
-                👤 my reports
+                <img
+                  src="/icons/my-reports.png"
+                  alt=""
+                  style={{ width: 14, height: 14 }}
+                />{" "}
+                my reports
               </button>
             </>
           )}
@@ -581,7 +617,11 @@ export default function Navbar({
                 pointerEvents: "auto",
               }}
             >
-              🐱
+              <img
+                src={`/icons/cat-${catFrame + 1}.png`}
+                alt=""
+                style={{ width: 28, height: 28 }}
+              />
             </button>
 
             {mobileActionsOpen && (
@@ -604,10 +644,18 @@ export default function Navbar({
                   onReport();
                   setMobileActionsOpen(false);
                 })}
-                {mobileActionRow("📍", "locate me", () => {
-                  onLocate();
-                  setMobileActionsOpen(false);
-                })}
+                {mobileActionRow(
+                  <img
+                    src="/icons/pin-button.png"
+                    alt=""
+                    style={{ width: 16, height: 16 }}
+                  />,
+                  "locate me",
+                  () => {
+                    onLocate();
+                    setMobileActionsOpen(false);
+                  },
+                )}
                 {mobileActionRow(
                   "🔧",
                   "filter",
@@ -617,7 +665,11 @@ export default function Navbar({
                   showFilter || hasActiveFilters,
                 )}
                 {mobileActionRow(
-                  "👤",
+                  <img
+                    src="/icons/my-reports.png"
+                    alt=""
+                    style={{ width: 16, height: 16 }}
+                  />,
                   "my reports",
                   () => {
                     onSelectRailItem(

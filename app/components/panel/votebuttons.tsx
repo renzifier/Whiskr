@@ -16,7 +16,7 @@ function ActionIcon({
   disabled,
   color,
 }: {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   onClick: () => void;
   active?: boolean;
@@ -78,7 +78,7 @@ function PillButton({
   disabled,
   color,
 }: {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   onClick: () => void;
   active?: boolean;
@@ -136,16 +136,7 @@ export default function VoteButtons({ reportId, variant = "icon" }: Props) {
     if (voted || loading) return;
     setLoading(true);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      // redirect to auth modal / show login prompt instead of inserting
-      return;
-    }
-    await supabase
-      .from("votes")
-      .insert({ report_id: reportId, vote, voter_id: user.id });
+    await supabase.from("votes").insert({ report_id: reportId, vote });
 
     if (vote === "still_here") setStillHere((p) => p + 1);
     else setNotHere((p) => p + 1);
@@ -159,7 +150,13 @@ export default function VoteButtons({ reportId, variant = "icon" }: Props) {
   return (
     <>
       <Button
-        icon="✓"
+        icon={
+          <img
+            src="/icons/still-here.png"
+            alt=""
+            style={{ width: 16, height: 16 }}
+          />
+        }
         label={`${stillHere} here`}
         color="#10B981"
         active={voted}
@@ -167,7 +164,13 @@ export default function VoteButtons({ reportId, variant = "icon" }: Props) {
         onClick={() => handleVote("still_here")}
       />
       <Button
-        icon="✗"
+        icon={
+          <img
+            src="/icons/not-here.png"
+            alt=""
+            style={{ width: 16, height: 16 }}
+          />
+        }
         label={`${notHere} gone`}
         color="#EF4444"
         active={voted}

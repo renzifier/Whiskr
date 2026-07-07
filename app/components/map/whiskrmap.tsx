@@ -184,12 +184,6 @@ export default function WhiskrMap({
           const updated = payload.new as Report;
           if (["rescued", "not_found", "resolved"].includes(updated.status)) {
             setReports((prev) => prev.filter((r) => r.id !== updated.id));
-            if (selectedReportRef.current?.id === updated.id) {
-              onSelectReport({
-                ...selectedReportRef.current,
-                ...updated,
-              } as Report);
-            }
           } else {
             setReports((prev) =>
               prev.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)),
@@ -202,7 +196,11 @@ export default function WhiskrMap({
             }
           }
         },
-      );
+      )
+      .subscribe((status) => {
+        console.log("Realtime status:", status);
+      });
+
     return () => {
       supabase.removeChannel(channel);
     };
@@ -223,9 +221,12 @@ export default function WhiskrMap({
   }, []);
 
   useEffect(() => {
+    console.log("registering locate fn");
     onLocate(() => {
+      console.log("locate fn called");
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((p) => {
+          console.log("got position", p.coords);
           mapRef.current?.setView([p.coords.latitude, p.coords.longitude], 15);
         });
       }
@@ -301,9 +302,14 @@ export default function WhiskrMap({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            padding: 0,
           }}
         >
-          +
+          <img
+            src="/icons/zoom-in.png"
+            alt="zoom in"
+            style={{ width: 24, height: 24 }}
+          />
         </button>
         <button
           onClick={() => mapRef.current?.zoomOut()}
@@ -321,9 +327,14 @@ export default function WhiskrMap({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            padding: 0,
           }}
         >
-          −
+          <img
+            src="/icons/zoom-out.png"
+            alt="zoom out"
+            style={{ width: 24, height: 24 }}
+          />
         </button>
       </div>
     </div>

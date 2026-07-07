@@ -287,7 +287,11 @@ export default function IconRail({
               fontSize: 20,
             }}
           >
-            📍
+            <img
+              src="/icons/pin-button.png"
+              alt=""
+              style={{ width: 20, height: 20 }}
+            />
           </button>
           <button
             title="filter"
@@ -332,7 +336,11 @@ export default function IconRail({
               fontSize: 20,
             }}
           >
-            👤
+            <img
+              src="/icons/my-reports.png"
+              alt=""
+              style={{ width: 20, height: 20 }}
+            />
           </button>
         </>
       )}

@@ -55,7 +55,11 @@ export default function Landing({ onLogin, onSignUp }: Props) {
                   fontSize: 18,
                 }}
               >
-                🐾
+                <img
+                  src="/icons/whiskr-icon.png"
+                  alt=""
+                  style={{ width: 20, height: 20 }}
+                />
               </div>
               <span style={{ color: "white", fontSize: 18, fontWeight: 600 }}>
                 whiskr
@@ -341,9 +345,11 @@ export default function Landing({ onLogin, onSignUp }: Props) {
                   justifyContent: "center",
                 }}
               >
-                <span style={{ transform: "rotate(45deg)", fontSize: 14 }}>
-                  🐱
-                </span>
+                <img
+                  src={`/icons/cat-${(i % 2) + 1}.png`}
+                  alt=""
+                  style={{ transform: "rotate(45deg)", width: 18, height: 18 }}
+                />
               </div>
               <div
                 style={{

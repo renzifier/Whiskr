@@ -20,7 +20,7 @@ function ActionIcon({
   disabled,
   color,
 }: {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   onClick: () => void;
   active?: boolean;
@@ -82,7 +82,7 @@ function PillButton({
   disabled,
   color,
 }: {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   onClick: () => void;
   active?: boolean;
@@ -163,6 +163,29 @@ export default function RescueActions({
       cancelled = true;
     };
   }, [report.status, report.rescuer_id]);
+
+  // Refetch the contact whenever this component mounts/remounts while the
+  // current user is the assigned rescuer — previously this only ever got
+  // set right after clicking accept, so reopening the panel later showed
+  // nothing even though RLS would still allow reading it.
+  useEffect(() => {
+    let cancelled = false;
+    async function loadContact() {
+      if (!isRescuer || report.status !== "rescue_accepted") {
+        return;
+      }
+      const { data } = await supabase
+        .from("report_contacts")
+        .select("contact")
+        .eq("report_id", report.id)
+        .maybeSingle();
+      if (!cancelled) setContact(data?.contact ?? null);
+    }
+    loadContact();
+    return () => {
+      cancelled = true;
+    };
+  }, [report.id, report.status, isRescuer]);
 
   const Button = variant === "pill" ? PillButton : ActionIcon;
 
@@ -257,14 +280,26 @@ export default function RescueActions({
         )}
         <div style={{ display: "flex", gap: variant === "pill" ? 8 : 4 }}>
           <Button
-            icon="✓"
+            icon={
+              <img
+                src="/icons/still-here.png"
+                alt=""
+                style={{ width: 16, height: 16 }}
+              />
+            }
             label="rescued"
             color="#10B981"
             disabled={loading}
             onClick={() => handleComplete("rescued")}
           />
           <Button
-            icon="✗"
+            icon={
+              <img
+                src="/icons/not-here.png"
+                alt=""
+                style={{ width: 16, height: 16 }}
+              />
+            }
             label="not found"
             color="#EF4444"
             disabled={loading}
@@ -355,7 +390,13 @@ export default function RescueActions({
         </p>
       )}
       <Button
-        icon="🐾"
+        icon={
+          <img
+            src="/icons/whiskr-icon.png"
+            alt=""
+            style={{ width: 16, height: 16 }}
+          />
+        }
         label={loading ? "volunteering..." : "volunteer to help"}
         color="#4A3F7A"
         active

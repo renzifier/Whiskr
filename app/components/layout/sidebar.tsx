@@ -171,7 +171,7 @@ function RailItem({
   active,
   onClick,
 }: {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   active: boolean;
   onClick: () => void;
@@ -278,7 +278,13 @@ function DesktopSidebar({
       {menuOpen && (
         <>
           <RailItem
-            icon="🔖"
+            icon={
+              <img
+                src="/icons/save-button.png"
+                alt=""
+                style={{ width: 18, height: 18 }}
+              />
+            }
             label="saved"
             active={open === "saved"}
             onClick={() => setOpen(open === "saved" ? null : "saved")}

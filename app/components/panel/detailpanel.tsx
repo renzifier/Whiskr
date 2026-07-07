@@ -48,7 +48,7 @@ function QuickActionIcon({
   label,
   onClick,
 }: {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   onClick: () => void;
 }) {
@@ -367,7 +367,14 @@ export default function DetailPanel({
           )}
         </p>
         {areaName && (
-          <p style={{ fontSize: 11, color: "#9CA3AF" }}>📍 near {areaName}</p>
+          <p style={{ fontSize: 11, color: "#9CA3AF" }}>
+            <img
+              src="/icons/pin-button.png"
+              alt=""
+              style={{ width: 11, height: 11, verticalAlign: "middle" }}
+            />{" "}
+            near {areaName}
+          </p>
         )}
       </div>
     </div>
@@ -451,7 +458,13 @@ export default function DetailPanel({
           onClick={handleDirections}
         />
         <QuickActionIcon
-          icon="🔖"
+          icon={
+            <img
+              src="/icons/save-button.png"
+              alt=""
+              style={{ width: 16, height: 16 }}
+            />
+          }
           label={isSaved ? "saved" : "save"}
           onClick={handleSaveClick}
         />
@@ -528,7 +541,11 @@ export default function DetailPanel({
               justifyContent: "center",
             }}
           >
-            🔖
+            <img
+              src="/icons/save-button.png"
+              alt=""
+              style={{ width: 16, height: 16 }}
+            />
           </button>
           <button
             onClick={handleShare}
