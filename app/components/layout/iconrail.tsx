@@ -17,16 +17,16 @@ type Props = {
 };
 
 export const typeOptions = [
-  { value: "stray", label: "stray", color: "#8B80C9" },
-  { value: "missing", label: "missing", color: "#EF4444" },
-  { value: "injured", label: "injured", color: "#8B5CF6" },
-  { value: "colony", label: "colony", color: "#10B981" },
+  { value: "stray", label: "Stray", color: "#8B80C9" },
+  { value: "missing", label: "Missing", color: "#EF4444" },
+  { value: "injured", label: "Injured", color: "#8B5CF6" },
+  { value: "colony", label: "Colony", color: "#10B981" },
 ];
 
 export const statusOptions = [
-  { value: "active", label: "active", color: "#10B981" },
-  { value: "stale", label: "stale", color: "#9CA3AF" },
-  { value: "rescue_accepted", label: "volunteer assigned", color: "#3B82F6" },
+  { value: "active", label: "Active", color: "#10B981" },
+  { value: "stale", label: "Stale", color: "#9CA3AF" },
+  { value: "rescue_accepted", label: "Volunteer Assigned", color: "#3B82F6" },
 ];
 
 export function FilterPanel({
@@ -67,10 +67,10 @@ export function FilterPanel({
         position: "fixed",
         top: 60,
         left: 64,
-        background: "white",
+        background: "#1A1628",
         borderRadius: 16,
-        boxShadow: "0 4px 24px rgba(74,63,122,0.15)",
-        border: "0.5px solid #E8E6F0",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
+        border: "0.5px solid rgba(255,255,255,0.08)",
         padding: 16,
         width: 220,
         zIndex: 99999,
@@ -85,8 +85,8 @@ export function FilterPanel({
           marginBottom: 12,
         }}
       >
-        <p style={{ fontSize: 12, fontWeight: 600, color: "#4A3F7A" }}>
-          filter pins
+        <p style={{ fontSize: 12, fontWeight: 600, color: "white" }}>
+          Filter Pins
         </p>
         <button
           onClick={onClose}
@@ -94,7 +94,7 @@ export function FilterPanel({
             background: "none",
             border: "none",
             cursor: "pointer",
-            color: "#9CA3AF",
+            color: "rgba(255,255,255,0.5)",
             fontSize: 14,
           }}
         >
@@ -105,12 +105,12 @@ export function FilterPanel({
       <p
         style={{
           fontSize: 11,
-          color: "#9CA3AF",
+          color: "rgba(255,255,255,0.5)",
           marginBottom: 8,
           fontWeight: 600,
         }}
       >
-        by type
+        By Type
       </p>
       <div
         style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}
@@ -140,12 +140,12 @@ export function FilterPanel({
       <p
         style={{
           fontSize: 11,
-          color: "#9CA3AF",
+          color: "rgba(255,255,255,0.5)",
           marginBottom: 8,
           fontWeight: 600,
         }}
       >
-        by status
+        By Status
       </p>
       <div
         style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}
@@ -178,22 +178,19 @@ export function FilterPanel({
           width: "100%",
           padding: "8px 0",
           borderRadius: 10,
-          border: "1px solid #E8E6F0",
+          border: "1px solid rgba(255,255,255,0.08)",
           background: "transparent",
-          color: "#9CA3AF",
+          color: "rgba(255,255,255,0.5)",
           fontSize: 11,
           cursor: "pointer",
         }}
       >
-        clear filters
+        Clear Filters
       </button>
     </div>
   );
 }
 
-// This component only ever renders on mobile (page.tsx mounts it inside
-// the `isMobile && ...` branch) — the desktop equivalent lives in the
-// navbar's action pills instead.
 export default function IconRail({
   active,
   onSelect,
@@ -227,8 +224,8 @@ export default function IconRail({
           height: 44,
           borderRadius: 14,
           border: "none",
-          background: "#4A3F7A",
-          boxShadow: "0 4px 16px rgba(74,63,122,0.35)",
+          background: "#8B80C9",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
@@ -239,13 +236,13 @@ export default function IconRail({
           transform: fabOpen ? "rotate(45deg)" : "rotate(0deg)",
         }}
       >
-        ➕
+        <img src="/icons/add.png" alt="" style={{ width: 20, height: 20 }} />
       </button>
 
       {fabOpen && (
         <>
           <button
-            title="report a cat"
+            title="Report a Cat"
             onClick={() => {
               onReport();
               setFabOpen(false);
@@ -255,8 +252,8 @@ export default function IconRail({
               height: 44,
               borderRadius: 14,
               border: "none",
-              background: "#4A3F7A",
-              boxShadow: "0 2px 12px rgba(74,63,122,0.3)",
+              background: "#8B80C9",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.35)",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
@@ -265,10 +262,14 @@ export default function IconRail({
               color: "white",
             }}
           >
-            ➕
+            <img
+              src="/icons/add.png"
+              alt=""
+              style={{ width: 20, height: 20 }}
+            />
           </button>
           <button
-            title="locate me"
+            title="Locate Me"
             onClick={() => {
               onLocate();
               setFabOpen(false);
@@ -277,9 +278,9 @@ export default function IconRail({
               width: 44,
               height: 44,
               borderRadius: 14,
-              border: "none",
-              background: "rgba(255,255,255,0.95)",
-              boxShadow: "0 2px 12px rgba(74,63,122,0.2)",
+              border: "0.5px solid rgba(255,255,255,0.08)",
+              background: "#1A1628",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.35)",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
@@ -294,7 +295,7 @@ export default function IconRail({
             />
           </button>
           <button
-            title="filter"
+            title="Filter"
             onClick={() => {
               setShowFilter(!showFilter);
               setFabOpen(false);
@@ -303,9 +304,9 @@ export default function IconRail({
               width: 44,
               height: 44,
               borderRadius: 14,
-              border: "none",
-              background: showFilter ? "#8B80C9" : "rgba(255,255,255,0.95)",
-              boxShadow: "0 2px 12px rgba(74,63,122,0.2)",
+              border: "0.5px solid rgba(255,255,255,0.08)",
+              background: showFilter ? "#8B80C9" : "#1A1628",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.35)",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
@@ -313,10 +314,14 @@ export default function IconRail({
               fontSize: 20,
             }}
           >
-            🔧
+            <img
+              src="/icons/filter.png"
+              alt=""
+              style={{ width: 20, height: 20 }}
+            />
           </button>
           <button
-            title="my reports"
+            title="My Reports"
             onClick={() => {
               onSelect(active === "profile" ? null : "profile");
               setFabOpen(false);
@@ -325,10 +330,9 @@ export default function IconRail({
               width: 44,
               height: 44,
               borderRadius: 14,
-              border: "none",
-              background:
-                active === "profile" ? "#8B80C9" : "rgba(255,255,255,0.95)",
-              boxShadow: "0 2px 12px rgba(74,63,122,0.2)",
+              border: "0.5px solid rgba(255,255,255,0.08)",
+              background: active === "profile" ? "#8B80C9" : "#1A1628",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.35)",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",

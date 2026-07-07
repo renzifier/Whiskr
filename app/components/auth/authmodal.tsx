@@ -65,12 +65,12 @@ export default function AuthModal({ onClose, defaultMode = "login" }: Props) {
             marginBottom: 20,
           }}
         >
-          {isSignup ? "create an account" : "log in"}
+          {isSignup ? "Create an Account" : "Log In"}
         </p>
 
         <input
           type="email"
-          placeholder="email"
+          placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           style={{
@@ -89,7 +89,7 @@ export default function AuthModal({ onClose, defaultMode = "login" }: Props) {
         />
         <input
           type="password"
-          placeholder="password"
+          placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           style={{
@@ -129,7 +129,7 @@ export default function AuthModal({ onClose, defaultMode = "login" }: Props) {
             marginTop: 4,
           }}
         >
-          {loading ? "please wait..." : isSignup ? "sign up" : "log in"}
+          {loading ? "Please Wait..." : isSignup ? "Sign Up" : "Log In"}
         </button>
 
         <p
@@ -140,12 +140,12 @@ export default function AuthModal({ onClose, defaultMode = "login" }: Props) {
             color: "#9CA3AF",
           }}
         >
-          {isSignup ? "already have an account?" : "don't have an account?"}{" "}
+          {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
           <span
             style={{ color: "#4A3F7A", cursor: "pointer", fontWeight: 600 }}
             onClick={() => setIsSignup(!isSignup)}
           >
-            {isSignup ? "log in" : "sign up"}
+            {isSignup ? "Log In" : "Sign Up"}
           </span>
         </p>
 
@@ -159,7 +159,7 @@ export default function AuthModal({ onClose, defaultMode = "login" }: Props) {
           }}
           onClick={onClose}
         >
-          cancel
+          Cancel
         </p>
       </div>
     </div>

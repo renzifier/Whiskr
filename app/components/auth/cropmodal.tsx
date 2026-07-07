@@ -28,7 +28,7 @@ async function getCroppedImageFile(
   canvas.width = cropPixels.width;
   canvas.height = cropPixels.height;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("could not get canvas context");
+  if (!ctx) throw new Error("Could not get canvas context");
 
   ctx.drawImage(
     image,
@@ -45,7 +45,7 @@ async function getCroppedImageFile(
   const blob = await new Promise<Blob | null>((resolve) =>
     canvas.toBlob(resolve, "image/jpeg", 0.92),
   );
-  if (!blob) throw new Error("failed to create image blob");
+  if (!blob) throw new Error("Failed to create image blob");
 
   return new File([blob], `avatar-${Date.now()}.jpg`, { type: "image/jpeg" });
 }
@@ -115,7 +115,7 @@ export default function CropModal({
             marginBottom: 16,
           }}
         >
-          adjust your photo
+          Adjust Your Photo
         </p>
 
         {/* Crop area */}
@@ -145,7 +145,7 @@ export default function CropModal({
         {/* Zoom slider */}
         <div style={{ margin: "16px 0" }}>
           <p style={{ fontSize: 11, color: "#9CA3AF", marginBottom: 6 }}>
-            zoom
+            Zoom
           </p>
           <input
             type="range"
@@ -175,7 +175,7 @@ export default function CropModal({
             opacity: saving ? 0.7 : 1,
           }}
         >
-          {saving ? "applying..." : "use this photo"}
+          {saving ? "Applying..." : "Use This Photo"}
         </button>
 
         <p
@@ -187,7 +187,7 @@ export default function CropModal({
           }}
           onClick={onCancel}
         >
-          cancel
+          Cancel
         </p>
       </div>
     </div>

@@ -45,12 +45,12 @@ function ActionIcon({
           width: 40,
           height: 40,
           borderRadius: "50%",
-          background: active ? (color ?? "#8B80C9") : "#E7DBFF",
+          background: active ? (color ?? "#8B80C9") : "rgba(139,128,201,0.18)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           fontSize: 15,
-          color: active ? "white" : (color ?? "#4A3F7A"),
+          color: active ? "white" : (color ?? "#8B80C9"),
         }}
       >
         {icon}
@@ -58,7 +58,7 @@ function ActionIcon({
       <span
         style={{
           fontSize: 10,
-          color: "#4A3F7A",
+          color: "rgba(255,255,255,0.55)",
           fontWeight: 500,
           textAlign: "center",
           whiteSpace: "nowrap",
@@ -96,8 +96,8 @@ function PillButton({
         padding: "10px 16px",
         borderRadius: 24,
         border: "none",
-        background: active ? (color ?? "#8B80C9") : "#E7DBFF",
-        color: active ? "white" : (color ?? "#4A3F7A"),
+        background: active ? (color ?? "#8B80C9") : "rgba(139,128,201,0.18)",
+        color: active ? "white" : (color ?? "#8B80C9"),
         fontSize: 13,
         fontWeight: 500,
         cursor: disabled ? "default" : "pointer",
@@ -157,7 +157,7 @@ export default function VoteButtons({ reportId, variant = "icon" }: Props) {
             style={{ width: 16, height: 16 }}
           />
         }
-        label={`${stillHere} here`}
+        label={`${stillHere} Here`}
         color="#10B981"
         active={voted}
         disabled={voted || loading}
@@ -171,7 +171,7 @@ export default function VoteButtons({ reportId, variant = "icon" }: Props) {
             style={{ width: 16, height: 16 }}
           />
         }
-        label={`${notHere} gone`}
+        label={`${notHere} Gone`}
         color="#EF4444"
         active={voted}
         disabled={voted || loading}

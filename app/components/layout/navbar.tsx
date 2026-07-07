@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { Session } from "@supabase/supabase-js";
 import type { Profile } from "../../../types";
 import { FilterPanel } from "./iconrail";
@@ -65,7 +65,11 @@ export default function Navbar({
   const movedRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0, catX: 0, catY: 0 });
   const [placeResults, setPlaceResults] = useState<
-    { display_name: string; lat: string; lon: string }[]
+    {
+      display_name: string;
+      lat: string;
+      lon: string;
+    }[]
   >([]);
   const [searchingPlaces, setSearchingPlaces] = useState(false);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -138,7 +142,6 @@ export default function Navbar({
     const dx = e.clientX - dragStartRef.current.x;
     const dy = e.clientY - dragStartRef.current.y;
 
-    // Small movements shouldn't count as a drag — keeps a normal tap working
     if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
       movedRef.current = true;
     }
@@ -159,7 +162,6 @@ export default function Navbar({
     e.currentTarget.releasePointerCapture(e.pointerId);
     localStorage.setItem("whiskr-cat-pos", JSON.stringify(catPos));
 
-    // Only treat it as a tap (open the menu) if it wasn't dragged
     if (!movedRef.current) {
       setMobileActionsOpen((prev) => !prev);
     }
@@ -195,14 +197,14 @@ export default function Navbar({
     display: "flex",
     alignItems: "center",
     gap: 6,
-    background: activeState ? "#8B80C9" : "white",
-    color: activeState ? "white" : "#4A3F7A",
+    background: activeState ? "#8B80C9" : "#1A1628",
+    color: activeState ? "white" : "rgba(255,255,255,0.85)",
     borderRadius: 24,
     padding: "10px 16px",
     fontSize: 13,
     fontWeight: 500,
-    boxShadow: "0 2px 10px rgba(74,63,122,0.18)",
-    border: "none",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.35)",
+    border: "0.5px solid rgba(255,255,255,0.08)",
     cursor: "pointer",
     whiteSpace: "nowrap",
     pointerEvents: "auto",
@@ -222,11 +224,11 @@ export default function Navbar({
         gap: 10,
         width: "100%",
         padding: "12px 16px",
-        background: active ? "#F5EEF0" : "transparent",
+        background: active ? "rgba(139,128,201,0.15)" : "transparent",
         border: "none",
         cursor: "pointer",
         fontSize: 13,
-        color: "#4A3F7A",
+        color: "rgba(255,255,255,0.85)",
         textAlign: "left",
       }}
     >
@@ -258,7 +260,6 @@ export default function Navbar({
             width: "100%",
           }}
         >
-          {/* Logo pill — desktop only */}
           {!isMobile && (
             <div
               style={{
@@ -266,10 +267,11 @@ export default function Navbar({
                 alignItems: "center",
                 gap: 8,
                 flexShrink: 0,
-                background: "white",
+                background: "#1A1628",
                 borderRadius: 24,
                 padding: "10px 16px",
-                boxShadow: "0 2px 10px rgba(74,63,122,0.18)",
+                boxShadow: "0 2px 10px rgba(0,0,0,0.35)",
+                border: "0.5px solid rgba(255,255,255,0.08)",
                 pointerEvents: "auto",
               }}
             >
@@ -278,13 +280,12 @@ export default function Navbar({
                 alt=""
                 style={{ width: 18, height: 18 }}
               />
-              <span style={{ fontWeight: 700, color: "#4A3F7A", fontSize: 15 }}>
-                whiskr
+              <span style={{ fontWeight: 700, color: "#8B80C9", fontSize: 15 }}>
+                Whiskr
               </span>
             </div>
           )}
 
-          {/* Search bar pill */}
           <div ref={searchRef} style={{ position: "relative" }}>
             <div
               style={{
@@ -293,10 +294,11 @@ export default function Navbar({
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
-                background: "white",
+                background: "#1A1628",
                 borderRadius: 24,
                 padding: "10px 16px",
-                boxShadow: "0 2px 10px rgba(74,63,122,0.18)",
+                boxShadow: "0 2px 10px rgba(0,0,0,0.35)",
+                border: "0.5px solid rgba(255,255,255,0.08)",
                 pointerEvents: "auto",
                 flexShrink: 1,
               }}
@@ -308,20 +310,24 @@ export default function Navbar({
                   style={{ width: 14, height: 14 }}
                 />
               ) : (
-                <span style={{ fontSize: 14 }}>🔍</span>
+                <img
+                  src="/icons/magnifying-glass.png"
+                  alt=""
+                  style={{ width: 14, height: 14 }}
+                />
               )}
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                placeholder="search reports or places..."
+                placeholder="Search reports or places..."
                 style={{
                   flex: 1,
                   border: "none",
                   outline: "none",
                   background: "transparent",
                   fontSize: 13,
-                  color: "#4A3F7A",
+                  color: "white",
                   minWidth: 0,
                 }}
               />
@@ -331,7 +337,11 @@ export default function Navbar({
                     onSearchChange("");
                     setPlaceResults([]);
                   }}
-                  style={{ fontSize: 12, color: "#9CA3AF", cursor: "pointer" }}
+                  style={{
+                    fontSize: 12,
+                    color: "rgba(255,255,255,0.5)",
+                    cursor: "pointer",
+                  }}
                 >
                   ✕
                 </span>
@@ -346,10 +356,10 @@ export default function Navbar({
                   left: 0,
                   width: "100%",
                   minWidth: 240,
-                  background: "white",
+                  background: "#1A1628",
                   borderRadius: 16,
-                  boxShadow: "0 4px 24px rgba(74,63,122,0.15)",
-                  border: "0.5px solid #E8E6F0",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
+                  border: "0.5px solid rgba(255,255,255,0.08)",
                   overflow: "hidden",
                   zIndex: 99999,
                   pointerEvents: "auto",
@@ -359,11 +369,11 @@ export default function Navbar({
                   <p
                     style={{
                       fontSize: 12,
-                      color: "#9CA3AF",
+                      color: "rgba(255,255,255,0.5)",
                       padding: "12px 16px",
                     }}
                   >
-                    searching places...
+                    Searching places...
                   </p>
                 )}
                 {placeResults.map((place, i) => (
@@ -379,11 +389,11 @@ export default function Navbar({
                       border: "none",
                       borderBottom:
                         i < placeResults.length - 1
-                          ? "0.5px solid #F5EEF0"
+                          ? "0.5px solid rgba(255,255,255,0.08)"
                           : "none",
                       cursor: "pointer",
                       fontSize: 12,
-                      color: "#4A3F7A",
+                      color: "rgba(255,255,255,0.85)",
                     }}
                   >
                     <img
@@ -398,11 +408,15 @@ export default function Navbar({
             )}
           </div>
 
-          {/* Desktop action pills */}
           {!isMobile && (
             <>
               <button style={pillStyle(false)} onClick={onReport}>
-                ➕ report a cat
+                <img
+                  src="/icons/add.png"
+                  alt=""
+                  style={{ width: 14, height: 14 }}
+                />{" "}
+                Report a Cat
               </button>
 
               <button style={pillStyle(false)} onClick={onLocate}>
@@ -411,7 +425,7 @@ export default function Navbar({
                   alt=""
                   style={{ width: 14, height: 14 }}
                 />{" "}
-                locate me
+                Locate Me
               </button>
 
               <div ref={filterRef} style={{ position: "relative" }}>
@@ -419,7 +433,12 @@ export default function Navbar({
                   style={pillStyle(showFilter || hasActiveFilters)}
                   onClick={() => setShowFilter(!showFilter)}
                 >
-                  🔧 filter
+                  <img
+                    src="/icons/filter.png"
+                    alt=""
+                    style={{ width: 14, height: 14 }}
+                  />{" "}
+                  Filter
                 </button>
                 {showFilter && (
                   <FilterPanel
@@ -428,7 +447,12 @@ export default function Navbar({
                     onFilterTypes={onFilterTypes}
                     onFilterStatuses={onFilterStatuses}
                     onClose={() => setShowFilter(false)}
-                    style={{ position: "absolute", top: 52, left: 0 }}
+                    style={{
+                      position: "absolute",
+                      top: 52,
+                      left: 0,
+                      pointerEvents: "auto",
+                    }}
                   />
                 )}
               </div>
@@ -446,15 +470,13 @@ export default function Navbar({
                   alt=""
                   style={{ width: 14, height: 14 }}
                 />{" "}
-                my reports
+                My Reports
               </button>
             </>
           )}
 
-          {/* push avatar to the right */}
           <div style={{ marginLeft: "auto" }} />
 
-          {/* Avatar pill + dropdown */}
           <div
             ref={ref}
             style={{ position: "relative", pointerEvents: "auto" }}
@@ -474,7 +496,7 @@ export default function Navbar({
                 fontWeight: 600,
                 cursor: "pointer",
                 userSelect: "none",
-                boxShadow: "0 2px 10px rgba(74,63,122,0.25)",
+                boxShadow: "0 2px 10px rgba(0,0,0,0.4)",
                 overflow: "hidden",
                 position: "relative",
               }}
@@ -482,7 +504,7 @@ export default function Navbar({
               {profile?.avatar_url ? (
                 <img
                   src={profile.avatar_url}
-                  alt="avatar"
+                  alt="Avatar"
                   onError={(e) => {
                     console.error(
                       "Avatar image failed to load:",
@@ -508,10 +530,10 @@ export default function Navbar({
                   position: "absolute",
                   top: 44,
                   right: 0,
-                  background: "white",
+                  background: "#1A1628",
                   borderRadius: 14,
-                  boxShadow: "0 4px 24px rgba(74,63,122,0.15)",
-                  border: "0.5px solid #E8E6F0",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
+                  border: "0.5px solid rgba(255,255,255,0.08)",
                   minWidth: 200,
                   overflow: "hidden",
                   zIndex: 9999,
@@ -520,18 +542,22 @@ export default function Navbar({
                 <div
                   style={{
                     padding: "14px 16px 10px",
-                    borderBottom: "0.5px solid #E8E6F0",
+                    borderBottom: "0.5px solid rgba(255,255,255,0.08)",
                   }}
                 >
                   <p
-                    style={{ fontSize: 11, color: "#9CA3AF", marginBottom: 2 }}
+                    style={{
+                      fontSize: 11,
+                      color: "rgba(255,255,255,0.5)",
+                      marginBottom: 2,
+                    }}
                   >
-                    signed in as
+                    Signed in as
                   </p>
                   <p
                     style={{
                       fontSize: 13,
-                      color: "#4A3F7A",
+                      color: "white",
                       fontWeight: 500,
                       wordBreak: "break-all",
                     }}
@@ -555,12 +581,12 @@ export default function Navbar({
                     alignItems: "center",
                     gap: 10,
                     fontSize: 13,
-                    color: "#4A3F7A",
+                    color: "rgba(255,255,255,0.85)",
                     textAlign: "left",
-                    borderBottom: "0.5px solid #E8E6F0",
+                    borderBottom: "0.5px solid rgba(255,255,255,0.08)",
                   }}
                 >
-                  <span>✏️</span> edit profile
+                  <span>✏️</span> Edit Profile
                 </button>
 
                 <button
@@ -582,14 +608,13 @@ export default function Navbar({
                     textAlign: "left",
                   }}
                 >
-                  <span>🚪</span> log out
+                  <span>🚪</span> Log Out
                 </button>
               </div>
             )}
           </div>
         </div>
 
-        {/* Mobile: draggable cat-icon toggle for actions */}
         {isMobile && (
           <div ref={mobileActionsRef}>
             <button
@@ -603,9 +628,9 @@ export default function Navbar({
                 width: 40,
                 height: 40,
                 borderRadius: "50%",
-                border: "none",
-                background: "white",
-                boxShadow: "0 2px 10px rgba(74,63,122,0.18)",
+                border: "0.5px solid rgba(255,255,255,0.08)",
+                background: "#1A1628",
+                boxShadow: "0 2px 10px rgba(0,0,0,0.35)",
                 cursor: "grab",
                 display: "flex",
                 alignItems: "center",
@@ -630,35 +655,47 @@ export default function Navbar({
                   position: "fixed",
                   left: catPos.x,
                   top: catPos.y + 48,
-                  background: "white",
+                  background: "#1A1628",
                   borderRadius: 16,
-                  boxShadow: "0 4px 24px rgba(74,63,122,0.15)",
-                  border: "0.5px solid #E8E6F0",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
+                  border: "0.5px solid rgba(255,255,255,0.08)",
                   width: 180,
                   overflow: "hidden",
                   zIndex: 99999,
                   pointerEvents: "auto",
                 }}
               >
-                {mobileActionRow("➕", "report a cat", () => {
-                  onReport();
-                  setMobileActionsOpen(false);
-                })}
+                {mobileActionRow(
+                  <img
+                    src="/icons/add.png"
+                    alt=""
+                    style={{ width: 16, height: 16 }}
+                  />,
+                  "Report a Cat",
+                  () => {
+                    onReport();
+                    setMobileActionsOpen(false);
+                  },
+                )}
                 {mobileActionRow(
                   <img
                     src="/icons/pin-button.png"
                     alt=""
                     style={{ width: 16, height: 16 }}
                   />,
-                  "locate me",
+                  "Locate Me",
                   () => {
                     onLocate();
                     setMobileActionsOpen(false);
                   },
                 )}
                 {mobileActionRow(
-                  "🔧",
-                  "filter",
+                  <img
+                    src="/icons/filter.png"
+                    alt=""
+                    style={{ width: 16, height: 16 }}
+                  />,
+                  "Filter",
                   () => {
                     setShowFilter(!showFilter);
                   },
@@ -670,7 +707,7 @@ export default function Navbar({
                     alt=""
                     style={{ width: 16, height: 16 }}
                   />,
-                  "my reports",
+                  "My Reports",
                   () => {
                     onSelectRailItem(
                       activeRailItem === "profile" ? null : "profile",

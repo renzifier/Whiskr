@@ -13,10 +13,10 @@ type Props = {
 };
 
 const catTypes: { value: CatType; label: string; color: string }[] = [
-  { value: "stray", label: "stray", color: "#8B80C9" },
-  { value: "missing", label: "missing", color: "#EF4444" },
-  { value: "injured", label: "injured", color: "#8B5CF6" },
-  { value: "colony", label: "colony", color: "#10B981" },
+  { value: "stray", label: "Stray", color: "#8B80C9" },
+  { value: "missing", label: "Missing", color: "#EF4444" },
+  { value: "injured", label: "Injured", color: "#8B5CF6" },
+  { value: "colony", label: "Colony", color: "#10B981" },
 ];
 
 export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
@@ -39,7 +39,7 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
 
   async function handleSubmit() {
     if (!photo) {
-      setError("please add a photo");
+      setError("Please add a photo");
       return;
     }
     setLoading(true);
@@ -51,7 +51,7 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
       .upload(filename, photo);
 
     if (uploadError) {
-      setError("photo upload failed, please try again");
+      setError("Photo upload failed, please try again");
       setLoading(false);
       return;
     }
@@ -78,7 +78,7 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
       .single();
 
     if (insertError || !newReport) {
-      setError("failed to submit report");
+      setError("Failed to submit report");
       setLoading(false);
       return;
     }
@@ -137,7 +137,7 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
             }}
           >
             <p style={{ fontWeight: 700, fontSize: 16, color: "#4A3F7A" }}>
-              report a cat
+              Report a Cat
             </p>
             <button
               onClick={onClose}
@@ -182,9 +182,9 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
                 <div style={{ textAlign: "center" }}>
                   <p style={{ fontSize: 28, marginBottom: 4 }}>📷</p>
                   <p style={{ fontSize: 12, color: "#8B80C9" }}>
-                    tap to add photo
+                    Tap to Add Photo
                   </p>
-                  <p style={{ fontSize: 11, color: "#9CA3AF" }}>required</p>
+                  <p style={{ fontSize: 11, color: "#9CA3AF" }}>Required</p>
                 </div>
               )}
             </div>
@@ -205,7 +205,7 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
                 fontWeight: 600,
               }}
             >
-              type of cat
+              Type of Cat
             </p>
             <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
               {catTypes.map((t) => (
@@ -237,7 +237,7 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
                 fontWeight: 600,
               }}
             >
-              location
+              Location
             </p>
             <div
               style={{
@@ -260,10 +260,10 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
                 fontWeight: 600,
               }}
             >
-              description <span style={{ fontWeight: 400 }}>(optional)</span>
+              Description <span style={{ fontWeight: 400 }}>(Optional)</span>
             </p>
             <textarea
-              placeholder="e.g. orange tabby, friendly, near the sari-sari store"
+              placeholder="E.g. orange tabby, friendly, near the sari-sari store"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               maxLength={300}
@@ -302,14 +302,14 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
                 fontWeight: 600,
               }}
             >
-              your contact{" "}
+              Your Contact{" "}
               <span style={{ fontWeight: 400 }}>
-                {catType === "missing" ? "(required)" : "(optional)"}
+                {catType === "missing" ? "(Required)" : "(Optional)"}
               </span>
             </p>
             <input
               type="text"
-              placeholder="email or phone number"
+              placeholder="Email or phone number"
               value={contact}
               onChange={(e) => setContact(e.target.value)}
               style={{
@@ -355,7 +355,7 @@ export default function ReportForm({ lat, lng, onClose, onSuccess }: Props) {
                 opacity: loading ? 0.7 : 1,
               }}
             >
-              {loading ? "submitting..." : "submit report"}
+              {loading ? "Submitting..." : "Submit Report"}
             </button>
           </div>
         </div>

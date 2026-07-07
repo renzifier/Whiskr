@@ -12,10 +12,10 @@ type Props = {
 };
 
 const typeLabels: Record<string, string> = {
-  stray: "stray",
-  missing: "missing",
-  injured: "injured",
-  colony: "colony",
+  stray: "Stray",
+  missing: "Missing",
+  injured: "Injured",
+  colony: "Colony",
 };
 
 const SIDEBAR_WIDTH = 88;
@@ -36,13 +36,13 @@ function ItemRow({
         gap: 10,
         padding: "10px 16px",
         cursor: "pointer",
-        borderBottom: "0.5px solid #F5EEF0",
+        borderBottom: "0.5px solid rgba(255,255,255,0.08)",
         alignItems: "center",
       }}
     >
       <img
         src={item.photo_url}
-        alt="cat"
+        alt="Cat"
         style={{
           width: 40,
           height: 40,
@@ -56,7 +56,7 @@ function ItemRow({
           style={{
             fontSize: 12,
             fontWeight: 600,
-            color: "#4A3F7A",
+            color: "white",
             marginBottom: 2,
           }}
         >
@@ -65,13 +65,13 @@ function ItemRow({
         <p
           style={{
             fontSize: 11,
-            color: "#9CA3AF",
+            color: "rgba(255,255,255,0.5)",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
           }}
         >
-          {item.description ?? "no description"}
+          {item.description ?? "No description"}
         </p>
       </div>
     </div>
@@ -83,7 +83,7 @@ function EmptyState({ text }: { text: string }) {
     <p
       style={{
         fontSize: 12,
-        color: "#9CA3AF",
+        color: "rgba(255,255,255,0.5)",
         padding: "20px 16px",
         textAlign: "center",
       }}
@@ -114,10 +114,10 @@ function ListPanel({
         position: "absolute",
         top: 0,
         left: SIDEBAR_WIDTH,
-        background: "white",
+        background: "#1A1628",
         borderRadius: 16,
-        boxShadow: "0 4px 24px rgba(74,63,122,0.15)",
-        border: "0.5px solid #E8E6F0",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
+        border: "0.5px solid rgba(255,255,255,0.08)",
         width: 260,
         maxHeight: 400,
         overflowY: "auto",
@@ -131,22 +131,20 @@ function ListPanel({
           justifyContent: "space-between",
           alignItems: "center",
           padding: "14px 16px",
-          borderBottom: "0.5px solid #E8E6F0",
+          borderBottom: "0.5px solid rgba(255,255,255,0.08)",
           position: "sticky",
           top: 0,
-          background: "white",
+          background: "#1A1628",
         }}
       >
-        <p style={{ fontSize: 13, fontWeight: 600, color: "#4A3F7A" }}>
-          {title}
-        </p>
+        <p style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{title}</p>
         <button
           onClick={onClose}
           style={{
             background: "none",
             border: "none",
             cursor: "pointer",
-            color: "#9CA3AF",
+            color: "rgba(255,255,255,0.5)",
             fontSize: 14,
           }}
         >
@@ -191,14 +189,19 @@ function RailItem({
         cursor: "pointer",
       }}
     >
-      <span style={{ fontSize: 20, color: active ? "#4A3F7A" : "#9CA3AF" }}>
+      <span
+        style={{
+          fontSize: 20,
+          color: active ? "white" : "rgba(255,255,255,0.5)",
+        }}
+      >
         {icon}
       </span>
       <span
         style={{
           fontSize: 11,
           fontWeight: 500,
-          color: active ? "#4A3F7A" : "#9CA3AF",
+          color: active ? "white" : "rgba(255,255,255,0.5)",
         }}
       >
         {label}
@@ -241,7 +244,9 @@ function DesktopSidebar({
         left: collapsed ? -SIDEBAR_WIDTH : 0,
         bottom: 0,
         width: SIDEBAR_WIDTH,
-        background: "white",
+        background: "#1A1628",
+        boxShadow: "2px 0 10px rgba(0,0,0,0.35)",
+        borderRight: "0.5px solid rgba(255,255,255,0.08)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -252,7 +257,7 @@ function DesktopSidebar({
       }}
     >
       <button
-        title="menu"
+        title="Menu"
         onClick={() => {
           setMenuOpen(!menuOpen);
           if (menuOpen) setOpen(null);
@@ -262,13 +267,13 @@ function DesktopSidebar({
           height: 36,
           borderRadius: 10,
           border: "none",
-          background: menuOpen ? "#E7DBFF" : "transparent",
+          background: menuOpen ? "rgba(139,128,201,0.15)" : "transparent",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           fontSize: 18,
-          color: "#4A3F7A",
+          color: "#8B80C9",
           marginBottom: 12,
         }}
       >
@@ -285,14 +290,20 @@ function DesktopSidebar({
                 style={{ width: 18, height: 18 }}
               />
             }
-            label="saved"
+            label="Saved"
             active={open === "saved"}
             onClick={() => setOpen(open === "saved" ? null : "saved")}
           />
 
           <RailItem
-            icon="🕐"
-            label="recents"
+            icon={
+              <img
+                src="/icons/recents-clock.png"
+                alt=""
+                style={{ width: 18, height: 18 }}
+              />
+            }
+            label="Recents"
             active={open === "recent"}
             onClick={() => setOpen(open === "recent" ? null : "recent")}
           />
@@ -301,9 +312,9 @@ function DesktopSidebar({
 
       {open === "saved" && (
         <ListPanel
-          title="saved reports"
+          title="Saved Reports"
           items={savedReports}
-          emptyText="no saved reports yet — tap the bookmark icon on a report to save it"
+          emptyText="No saved reports yet — tap the bookmark icon on a report to save it"
           onSelect={onSelect}
           onClose={() => setOpen(null)}
         />
@@ -311,9 +322,9 @@ function DesktopSidebar({
 
       {open === "recent" && (
         <ListPanel
-          title="recently viewed"
+          title="Recently Viewed"
           items={recentlyViewed}
-          emptyText="reports you view will show up here"
+          emptyText="Reports you view will show up here"
           onSelect={onSelect}
           onClose={() => setOpen(null)}
         />
@@ -353,12 +364,11 @@ function MobileSidebar({
   const items = tab === "saved" ? savedReports : recentlyViewed;
   const emptyText =
     tab === "saved"
-      ? "no saved reports yet — tap the bookmark icon on a report to save it"
-      : "reports you view will show up here";
+      ? "No saved reports yet — tap the bookmark icon on a report to save it"
+      : "Reports you view will show up here";
 
   return (
     <>
-      {/* Arrow tab — always visible, fixed to the left edge */}
       <button
         onClick={() => setDrawerOpen(!drawerOpen)}
         style={{
@@ -370,14 +380,14 @@ function MobileSidebar({
           height: 52,
           borderRadius: "0 12px 12px 0",
           border: "none",
-          background: "white",
-          boxShadow: "2px 0 8px rgba(74,63,122,0.15)",
+          background: "var(--color-surface)",
+          boxShadow: "2px 0 8px rgba(var(--color-shadow),0.15)",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           fontSize: 14,
-          color: "#8B80C9",
+          color: "var(--color-accent)",
           zIndex: 10002,
           transition: "left 0.25s ease",
         }}
@@ -385,7 +395,6 @@ function MobileSidebar({
         {drawerOpen ? "‹" : "›"}
       </button>
 
-      {/* Sliding drawer */}
       <div
         ref={drawerRef}
         style={{
@@ -394,8 +403,8 @@ function MobileSidebar({
           left: 0,
           bottom: 0,
           width: DRAWER_WIDTH,
-          background: "white",
-          boxShadow: "2px 0 16px rgba(74,63,122,0.2)",
+          background: "var(--color-surface)",
+          boxShadow: "2px 0 16px rgba(var(--color-shadow),0.2)",
           zIndex: 10001,
           transform: drawerOpen ? "translateX(0)" : "translateX(-100%)",
           transition: "transform 0.25s ease",
@@ -403,11 +412,10 @@ function MobileSidebar({
           flexDirection: "column",
         }}
       >
-        {/* Tabs */}
         <div
           style={{
             display: "flex",
-            borderBottom: "0.5px solid #E8E6F0",
+            borderBottom: "0.5px solid var(--color-border)",
             paddingTop: 20,
           }}
         >
@@ -419,14 +427,19 @@ function MobileSidebar({
               background: "transparent",
               border: "none",
               borderBottom:
-                tab === "saved" ? "2px solid #8B80C9" : "2px solid transparent",
-              color: tab === "saved" ? "#4A3F7A" : "#9CA3AF",
+                tab === "saved"
+                  ? "2px solid var(--color-accent)"
+                  : "2px solid transparent",
+              color:
+                tab === "saved"
+                  ? "var(--color-text)"
+                  : "var(--color-text-muted)",
               fontWeight: 600,
               fontSize: 13,
               cursor: "pointer",
             }}
           >
-            🔖 saved
+            🔖 Saved
           </button>
           <button
             onClick={() => setTab("recent")}
@@ -437,19 +450,30 @@ function MobileSidebar({
               border: "none",
               borderBottom:
                 tab === "recent"
-                  ? "2px solid #8B80C9"
+                  ? "2px solid var(--color-accent)"
                   : "2px solid transparent",
-              color: tab === "recent" ? "#4A3F7A" : "#9CA3AF",
+              color:
+                tab === "recent"
+                  ? "var(--color-text)"
+                  : "var(--color-text-muted)",
               fontWeight: 600,
               fontSize: 13,
               cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
             }}
           >
-            🕐 recents
+            <img
+              src="/icons/recents-clock.png"
+              alt=""
+              style={{ width: 14, height: 14 }}
+            />
+            Recents
           </button>
         </div>
 
-        {/* List */}
         <div style={{ overflowY: "auto", flex: 1 }}>
           {items.length === 0 ? (
             <EmptyState text={emptyText} />

@@ -39,30 +39,37 @@ export default function Landing({ onLogin, onSignUp }: Props) {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 10,
+                gap: 14,
                 marginBottom: 40,
               }}
             >
               <div
                 style={{
-                  width: 36,
-                  height: 36,
+                  width: 52,
+                  height: 52,
                   background: "rgba(139,128,201,0.2)",
-                  borderRadius: 10,
+                  borderRadius: 14,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: 18,
+                  flexShrink: 0,
                 }}
               >
                 <img
                   src="/icons/whiskr-icon.png"
                   alt=""
-                  style={{ width: 20, height: 20 }}
+                  style={{ width: 30, height: 30 }}
                 />
               </div>
-              <span style={{ color: "white", fontSize: 18, fontWeight: 600 }}>
-                whiskr
+              <span
+                style={{
+                  color: "#8B80C9",
+                  fontSize: 30,
+                  fontWeight: 800,
+                  letterSpacing: "-0.5px",
+                }}
+              >
+                Whiskr
               </span>
             </div>
 
@@ -79,7 +86,7 @@ export default function Landing({ onLogin, onSignUp }: Props) {
                 letterSpacing: "0.5px",
               }}
             >
-              live cat rescue map
+              Live Cat Rescue Map
             </div>
 
             <h1
@@ -92,9 +99,9 @@ export default function Landing({ onLogin, onSignUp }: Props) {
                 letterSpacing: "-1px",
               }}
             >
-              every stray cat
+              Every Stray Cat
               <br />
-              deserves a <span style={{ color: "#8B80C9" }}>spotter</span>
+              Deserves a <span style={{ color: "#8B80C9" }}>Spotter</span>
             </h1>
 
             <p
@@ -106,8 +113,8 @@ export default function Landing({ onLogin, onSignUp }: Props) {
                 maxWidth: 320,
               }}
             >
-              drop a pin when you see one. the community confirms it. a
-              volunteer goes. that's whiskr.
+              Drop a pin when you see one. The community confirms it. A
+              volunteer goes. That's Whiskr.
             </p>
 
             <div
@@ -119,10 +126,10 @@ export default function Landing({ onLogin, onSignUp }: Props) {
               }}
             >
               {[
-                { color: "#8B80C9", label: "stray" },
-                { color: "#EF4444", label: "missing" },
-                { color: "#3B82F6", label: "volunteer assigned" },
-                { color: "#10B981", label: "colony" },
+                { color: "#8B80C9", label: "Stray" },
+                { color: "#EF4444", label: "Missing" },
+                { color: "#3B82F6", label: "Volunteer Assigned" },
+                { color: "#10B981", label: "Colony" },
               ].map((pin) => (
                 <div
                   key={pin.label}
@@ -169,7 +176,7 @@ export default function Landing({ onLogin, onSignUp }: Props) {
                   cursor: "pointer",
                 }}
               >
-                log in
+                Log In
               </button>
               <button
                 onClick={onSignUp}
@@ -185,7 +192,7 @@ export default function Landing({ onLogin, onSignUp }: Props) {
                   cursor: "pointer",
                 }}
               >
-                sign up free
+                Sign Up Free
               </button>
             </div>
 
@@ -197,7 +204,7 @@ export default function Landing({ onLogin, onSignUp }: Props) {
                 marginTop: 16,
               }}
             >
-              browse and confirm sightings without an account
+              Browse and confirm sightings without an account
             </p>
           </div>
         </div>
@@ -294,7 +301,7 @@ export default function Landing({ onLogin, onSignUp }: Props) {
                 fontWeight: 500,
               }}
             >
-              live
+              Live
             </span>
           </div>
 
@@ -303,23 +310,23 @@ export default function Landing({ onLogin, onSignUp }: Props) {
               top: "20%",
               left: "30%",
               color: "#8B80C9",
-              label: "stray · active",
+              label: "Stray · Active",
             },
             {
               top: "45%",
               left: "55%",
               color: "#3B82F6",
-              label: "volunteer assigned",
+              label: "Volunteer Assigned",
             },
-            { top: "25%", left: "72%", color: "#EF4444", label: "missing" },
+            { top: "25%", left: "72%", color: "#EF4444", label: "Missing" },
             {
               top: "60%",
               left: "25%",
               color: "#9CA3AF",
-              label: "stale",
+              label: "Stale",
               opacity: 0.5,
             },
-            { top: "35%", left: "82%", color: "#10B981", label: "colony" },
+            { top: "35%", left: "82%", color: "#10B981", label: "Colony" },
           ].map((pin, i) => (
             <div
               key={i}
@@ -383,9 +390,9 @@ export default function Landing({ onLogin, onSignUp }: Props) {
             }}
           >
             {[
-              { num: "2s", label: "pin goes live" },
-              { num: "0", label: "account to report" },
-              { num: "100%", label: "free forever" },
+              { num: "2s", label: "Pin Goes Live" },
+              { num: "0", label: "Account to Report" },
+              { num: "100%", label: "Free Forever" },
             ].map((stat) => (
               <div key={stat.label}>
                 <div

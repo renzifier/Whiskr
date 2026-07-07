@@ -53,7 +53,7 @@ export default function EditProfileModal({
 
       if (uploadError) {
         console.error("avatar upload error:", uploadError);
-        setError(`photo upload failed: ${uploadError.message}`);
+        setError(`Photo upload failed: ${uploadError.message}`);
         setLoading(false);
         return;
       }
@@ -78,7 +78,7 @@ export default function EditProfileModal({
     if (upsertError || !data) {
       console.error("profile upsert error:", upsertError);
       setError(
-        `failed to save profile: ${upsertError?.message ?? "unknown error"}`,
+        `Failed to save profile: ${upsertError?.message ?? "Unknown error"}`,
       );
       setLoading(false);
       return;
@@ -120,7 +120,7 @@ export default function EditProfileModal({
               marginBottom: 20,
             }}
           >
-            edit profile
+            Edit Profile
           </p>
 
           {/* Avatar picker */}
@@ -152,11 +152,11 @@ export default function EditProfileModal({
               {avatarPreview ? (
                 <img
                   src={avatarPreview}
-                  alt="avatar preview"
+                  alt="Avatar preview"
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               ) : (
-                "tap to add photo"
+                "Tap to Add Photo"
               )}
             </div>
             <input
@@ -176,11 +176,11 @@ export default function EditProfileModal({
               fontWeight: 600,
             }}
           >
-            display name
+            Display Name
           </p>
           <input
             type="text"
-            placeholder="your name"
+            placeholder="Your name"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             style={{
@@ -219,7 +219,7 @@ export default function EditProfileModal({
               marginTop: 4,
             }}
           >
-            {loading ? "saving..." : "save changes"}
+            {loading ? "Saving..." : "Save Changes"}
           </button>
 
           <p
@@ -232,7 +232,7 @@ export default function EditProfileModal({
             }}
             onClick={onClose}
           >
-            cancel
+            Cancel
           </p>
         </div>
       </div>

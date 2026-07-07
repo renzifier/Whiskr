@@ -89,7 +89,6 @@ function MapCapture({
   const map = useMap();
   useEffect(() => {
     mapRef.current = map;
-    // Force Leaflet to recalculate size + zoom after layout settles
     const timer = setTimeout(() => {
       map.invalidateSize();
     }, 0);
@@ -156,8 +155,6 @@ export default function WhiskrMap({
 
   useEffect(() => {
     async function load() {
-      // Query the public-safe view — it excludes reporter_contact, which
-      // should only ever be revealed via the accept_rescue RPC.
       const { data } = await supabase
         .from("public_reports")
         .select("*")
@@ -196,10 +193,7 @@ export default function WhiskrMap({
             }
           }
         },
-      )
-      .subscribe((status) => {
-        console.log("Realtime status:", status);
-      });
+      );
 
     return () => {
       supabase.removeChannel(channel);
@@ -221,12 +215,9 @@ export default function WhiskrMap({
   }, []);
 
   useEffect(() => {
-    console.log("registering locate fn");
     onLocate(() => {
-      console.log("locate fn called");
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((p) => {
-          console.log("got position", p.coords);
           mapRef.current?.setView([p.coords.latitude, p.coords.longitude], 15);
         });
       }
@@ -249,7 +240,7 @@ export default function WhiskrMap({
         style={{ height: "100%", width: "100%" }}
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>'
         />
         <SaveMapPosition />
@@ -307,7 +298,7 @@ export default function WhiskrMap({
         >
           <img
             src="/icons/zoom-in.png"
-            alt="zoom in"
+            alt="Zoom in"
             style={{ width: 24, height: 24 }}
           />
         </button>
@@ -332,7 +323,7 @@ export default function WhiskrMap({
         >
           <img
             src="/icons/zoom-out.png"
-            alt="zoom out"
+            alt="Zoom out"
             style={{ width: 24, height: 24 }}
           />
         </button>

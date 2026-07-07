@@ -6,6 +6,16 @@
   --color-plum: #4a3f7a;
   --color-plum-light: #8b80c9;
   --color-plum-pale: #e7dbff;
+
+  --color-surface: #1a1826;
+  --color-surface-alt: #211f30;
+  --color-text: #f0eefa;
+  --color-text-muted: #9a95b3;
+  --color-border: #322f45;
+  --color-accent: #8b80c9;
+  --color-accent-pale: #2c2840;
+  --color-cta: #4a3f7a;
+  --color-shadow: 0, 0, 0;
 }
 
 * {
@@ -15,7 +25,8 @@
 }
 
 body {
-  background-color: #e8e6f0;
+  background-color: #0f0d1a;
+  color: var(--color-text);
   font-family: "Segoe UI", sans-serif;
 }
 

@@ -49,12 +49,12 @@ function ActionIcon({
           width: 40,
           height: 40,
           borderRadius: "50%",
-          background: active ? (color ?? "#8B80C9") : "#E7DBFF",
+          background: active ? (color ?? "#8B80C9") : "rgba(139,128,201,0.18)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           fontSize: 15,
-          color: active ? "white" : (color ?? "#4A3F7A"),
+          color: active ? "white" : (color ?? "#8B80C9"),
         }}
       >
         {icon}
@@ -62,7 +62,7 @@ function ActionIcon({
       <span
         style={{
           fontSize: 10,
-          color: "#4A3F7A",
+          color: "rgba(255,255,255,0.55)",
           fontWeight: 500,
           textAlign: "center",
           whiteSpace: "nowrap",
@@ -100,8 +100,8 @@ function PillButton({
         padding: "10px 16px",
         borderRadius: 24,
         border: "none",
-        background: active ? (color ?? "#8B80C9") : "#E7DBFF",
-        color: active ? "white" : (color ?? "#4A3F7A"),
+        background: active ? (color ?? "#8B80C9") : "rgba(139,128,201,0.18)",
+        color: active ? "white" : (color ?? "#8B80C9"),
         fontSize: 13,
         fontWeight: 500,
         cursor: disabled ? "default" : "pointer",
@@ -202,7 +202,7 @@ export default function RescueActions({
     });
 
     if (error || !data?.success) {
-      setError(data?.error ?? "failed to volunteer for this rescue");
+      setError(data?.error ?? "Failed to volunteer for this rescue");
     } else {
       setContact(data.contact);
     }
@@ -217,7 +217,7 @@ export default function RescueActions({
     });
 
     if (error) {
-      setError("failed to complete rescue");
+      setError("Failed to complete rescue");
       setLoading(false);
       return;
     }
@@ -242,13 +242,13 @@ export default function RescueActions({
         style={{
           textAlign: "center",
           padding: "12px 0",
-          color: "#9CA3AF",
+          color: "rgba(255,255,255,0.55)",
           fontSize: 13,
         }}
       >
         {report.status === "rescued"
-          ? "🐱 this cat was rescued"
-          : "😔 cat was not found"}
+          ? "🐱 This cat was rescued"
+          : "😔 Cat was not found"}
       </div>
     );
   }
@@ -259,7 +259,7 @@ export default function RescueActions({
         {contact && variant !== "pill" && (
           <div
             style={{
-              background: "#E7DBFF",
+              background: "rgba(139,128,201,0.18)",
               borderRadius: 10,
               padding: 12,
               marginBottom: 10,
@@ -268,14 +268,14 @@ export default function RescueActions({
             <p
               style={{
                 fontSize: 11,
-                color: "#4A3F7A",
+                color: "#8B80C9",
                 fontWeight: 600,
                 marginBottom: 4,
               }}
             >
-              reporter contact
+              Reporter Contact
             </p>
-            <p style={{ fontSize: 13, color: "#4A3F7A" }}>{contact}</p>
+            <p style={{ fontSize: 13, color: "white" }}>{contact}</p>
           </div>
         )}
         <div style={{ display: "flex", gap: variant === "pill" ? 8 : 4 }}>
@@ -287,7 +287,7 @@ export default function RescueActions({
                 style={{ width: 16, height: 16 }}
               />
             }
-            label="rescued"
+            label="Rescued"
             color="#10B981"
             disabled={loading}
             onClick={() => handleComplete("rescued")}
@@ -300,15 +300,15 @@ export default function RescueActions({
                 style={{ width: 16, height: 16 }}
               />
             }
-            label="not found"
+            label="Not Found"
             color="#EF4444"
             disabled={loading}
             onClick={() => handleComplete("not_found")}
           />
           <Button
             icon="↩"
-            label="release"
-            color="#9CA3AF"
+            label="Release"
+            color="rgba(255,255,255,0.55)"
             disabled={loading}
             onClick={handleRelease}
           />
@@ -325,14 +325,14 @@ export default function RescueActions({
           alignItems: "center",
           gap: 10,
           padding: "10px 12px",
-          background: "#EFF6FF",
+          background: "rgba(59,130,246,0.14)",
           borderRadius: 12,
         }}
       >
         {volunteerProfile?.avatar_url ? (
           <img
             src={volunteerProfile.avatar_url}
-            alt="volunteer"
+            alt="Volunteer"
             style={{
               width: 32,
               height: 32,
@@ -362,11 +362,11 @@ export default function RescueActions({
         )}
         <div>
           <p style={{ fontSize: 13, color: "#3B82F6", fontWeight: 500 }}>
-            {volunteerProfile?.display_name || "a volunteer"} is on the way
+            {volunteerProfile?.display_name || "A volunteer"} is on the way
           </p>
           {volunteerRescueCount !== null && volunteerRescueCount > 0 && (
             <p style={{ fontSize: 11, color: "#60A5FA" }}>
-              helped with {volunteerRescueCount}{" "}
+              Helped with {volunteerRescueCount}{" "}
               {volunteerRescueCount === 1 ? "rescue" : "rescues"}
             </p>
           )}
@@ -397,7 +397,7 @@ export default function RescueActions({
             style={{ width: 16, height: 16 }}
           />
         }
-        label={loading ? "volunteering..." : "volunteer to help"}
+        label={loading ? "Volunteering..." : "Volunteer to Help"}
         color="#4A3F7A"
         active
         disabled={loading}

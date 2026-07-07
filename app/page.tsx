@@ -181,7 +181,7 @@ export default function Home() {
           fontSize: 14,
         }}
       >
-        loading...
+        Loading...
       </div>
     );
   }

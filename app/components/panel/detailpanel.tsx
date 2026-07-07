@@ -19,19 +19,19 @@ type Props = {
 };
 
 const statusLabels: Record<string, { label: string; color: string }> = {
-  active: { label: "active", color: "#10B981" },
-  stale: { label: "stale", color: "#9CA3AF" },
-  rescue_accepted: { label: "volunteer assigned", color: "#3B82F6" },
-  rescued: { label: "rescued", color: "#10B981" },
-  not_found: { label: "not found", color: "#9CA3AF" },
-  resolved: { label: "resolved", color: "#9CA3AF" },
+  active: { label: "Active", color: "#10B981" },
+  stale: { label: "Stale", color: "#9CA3AF" },
+  rescue_accepted: { label: "Volunteer Assigned", color: "#3B82F6" },
+  rescued: { label: "Rescued", color: "#10B981" },
+  not_found: { label: "Not Found", color: "#9CA3AF" },
+  resolved: { label: "Resolved", color: "#9CA3AF" },
 };
 
 const typeLabels: Record<string, string> = {
-  stray: "stray",
-  missing: "missing",
-  injured: "injured",
-  colony: "colony",
+  stray: "Stray",
+  missing: "Missing",
+  injured: "Injured",
+  colony: "Colony",
 };
 
 function timeAgo(dateStr: string) {
@@ -72,12 +72,12 @@ function QuickActionIcon({
           width: 40,
           height: 40,
           borderRadius: "50%",
-          background: "#E7DBFF",
+          background: "rgba(139,128,201,0.18)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           fontSize: 15,
-          color: "#4A3F7A",
+          color: "#8B80C9",
         }}
       >
         {icon}
@@ -85,7 +85,7 @@ function QuickActionIcon({
       <span
         style={{
           fontSize: 10,
-          color: "#4A3F7A",
+          color: "rgba(255,255,255,0.55)",
           fontWeight: 500,
           textAlign: "center",
           whiteSpace: "nowrap",
@@ -141,72 +141,72 @@ export default function DetailPanel({
   // Human-readable area name — reverse-geocoded from lat/lng via Nominatim
   const [areaName, setAreaName] = useState<string | null>(null);
 
- useEffect(() => {
-   let cancelled = false;
-   async function loadArea() {
-     setAreaName(null);
-     try {
-       const res = await fetch(
-         buildValidatedUrl(
-           "https://nominatim.openstreetmap.org/reverse",
-           report.lat,
-           report.lng,
-         ),
-       );
-      function buildValidatedUrl(
-        baseUrl: string,
-        lat: number | string,
-        lon: number | string,
-      ): string {
-        try {
-          const url = new URL(baseUrl);
+  useEffect(() => {
+    let cancelled = false;
+    async function loadArea() {
+      setAreaName(null);
+      try {
+        const res = await fetch(
+          buildValidatedUrl(
+            "https://nominatim.openstreetmap.org/reverse",
+            report.lat,
+            report.lng,
+          ),
+        );
+        function buildValidatedUrl(
+          baseUrl: string,
+          lat: number | string,
+          lon: number | string,
+        ): string {
+          try {
+            const url = new URL(baseUrl);
 
-          // Normalize to string
-          const latStr = String(lat);
-          const lonStr = String(lon);
+            // Normalize to string
+            const latStr = String(lat);
+            const lonStr = String(lon);
 
-          // Validate latitude and longitude parameters
-          if (!/^-?[0-9]+(?:\.[0-9]+)?$/.test(latStr)) {
-            throw new Error("Invalid parameter");
+            // Validate latitude and longitude parameters
+            if (!/^-?[0-9]+(?:\.[0-9]+)?$/.test(latStr)) {
+              throw new Error("Invalid parameter");
+            }
+            if (!/^-?[0-9]+(?:\.[0-9]+)?$/.test(lonStr)) {
+              throw new Error("Invalid parameter");
+            }
+
+            // Add query parameters
+            url.searchParams.set("format", "json");
+            url.searchParams.set("lat", latStr);
+            url.searchParams.set("lon", lonStr);
+            url.searchParams.set("zoom", "14");
+
+            return url.href;
+          } catch {
+            throw new Error("Invalid URL");
           }
-          if (!/^-?[0-9]+(?:\.[0-9]+)?$/.test(lonStr)) {
-            throw new Error("Invalid parameter");
-          }
+        }
 
-          // Add query parameters
-          url.searchParams.set("format", "json");
-          url.searchParams.set("lat", latStr);
-          url.searchParams.set("lon", lonStr);
-          url.searchParams.set("zoom", "14");
-
-           return url.href;
-         } catch {
-           throw new Error("Invalid URL");
-         }
-       }
-
-       const data = await res.json();
-       if (cancelled) return;
-       const addr = data.address ?? {};
-       const area =
-         addr.suburb ||
-         addr.village ||
-         addr.town ||
-         addr.city_district ||
-         addr.city ||
-         addr.county ||
-         data.display_name?.split(",")[0] ||
-         null;
-       setAreaName(area);
-     } catch {
-       if (!cancelled) setAreaName(null);
-     }
-   }
-   loadArea();
-   return () => {
-     cancelled = true;
-   };
- }, [report.lat, report.lng]);
+        const data = await res.json();
+        if (cancelled) return;
+        const addr = data.address ?? {};
+        const area =
+          addr.suburb ||
+          addr.village ||
+          addr.town ||
+          addr.city_district ||
+          addr.city ||
+          addr.county ||
+          data.display_name?.split(",")[0] ||
+          null;
+        setAreaName(area);
+      } catch {
+        if (!cancelled) setAreaName(null);
+      }
+    }
+    loadArea();
+    return () => {
+      cancelled = true;
+    };
+  }, [report.lat, report.lng]);
 
   // --- Mobile bottom sheet: transform-based drag + snap animation ---
   const COLLAPSED_RATIO = 0.45;
@@ -355,12 +355,14 @@ export default function DetailPanel({
         alignItems: "center",
         gap: 8,
         marginBottom: 12,
+        paddingBottom: 12,
+        borderBottom: "1px solid rgba(139,128,201,0.3)",
       }}
     >
       {reporterProfile?.avatar_url ? (
         <img
           src={reporterProfile.avatar_url}
-          alt="reporter"
+          alt="Reporter"
           style={{
             width: 24,
             height: 24,
@@ -389,12 +391,12 @@ export default function DetailPanel({
         </div>
       )}
       <div style={{ minWidth: 0 }}>
-        <p style={{ fontSize: 12, color: "#4A3F7A", fontWeight: 500 }}>
-          reported by {reporterProfile?.display_name || "a Whiskr user"}
+        <p style={{ fontSize: 12, color: "white", fontWeight: 500 }}>
+          Reported by {reporterProfile?.display_name || "a Whiskr user"}
           {reporterProfile?.created_at && (
-            <span style={{ color: "#9CA3AF", fontWeight: 400 }}>
+            <span style={{ color: "rgba(255,255,255,0.55)", fontWeight: 400 }}>
               {" "}
-              · member since{" "}
+              · Member since{" "}
               {new Date(reporterProfile.created_at).toLocaleDateString(
                 "en-US",
                 { month: "short", year: "numeric" },
@@ -403,13 +405,13 @@ export default function DetailPanel({
           )}
         </p>
         {areaName && (
-          <p style={{ fontSize: 11, color: "#9CA3AF" }}>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>
             <img
               src="/icons/pin-button.png"
               alt=""
               style={{ width: 11, height: 11, verticalAlign: "middle" }}
             />{" "}
-            near {areaName}
+            Near {areaName}
           </p>
         )}
       </div>
@@ -419,15 +421,23 @@ export default function DetailPanel({
   // Desktop content — unchanged icon-stack layout
   const content = (
     <>
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          marginBottom: 12,
+          paddingBottom: 12,
+          borderBottom: "1px solid rgba(139,128,201,0.3)",
+        }}
+      >
         <span
           style={{
             fontSize: 11,
             fontWeight: 600,
             padding: "3px 10px",
             borderRadius: 20,
-            background: "#E7DBFF",
-            color: "#4A3F7A",
+            background: "rgba(139,128,201,0.18)",
+            color: "#8B80C9",
           }}
         >
           {typeLabels[report.cat_type]}
@@ -452,7 +462,7 @@ export default function DetailPanel({
         <p
           style={{
             fontSize: 13,
-            color: "#4A3F7A",
+            color: "white",
             marginBottom: 12,
             lineHeight: 1.5,
           }}
@@ -469,11 +479,11 @@ export default function DetailPanel({
           marginBottom: 16,
         }}
       >
-        <p style={{ fontSize: 12, color: "#9CA3AF" }}>
-          🕐 reported {timeAgo(report.created_at)}
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
+          🕐 Reported {timeAgo(report.created_at)}
         </p>
-        <p style={{ fontSize: 12, color: "#9CA3AF" }}>
-          ✓ last confirmed {timeAgo(report.last_confirmed_at)}
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
+          ✓ Last confirmed {timeAgo(report.last_confirmed_at)}
         </p>
       </div>
 
@@ -484,13 +494,19 @@ export default function DetailPanel({
           gap: 4,
           marginBottom: 16,
           paddingBottom: 16,
-          borderBottom: "0.5px solid #E8E6F0",
+          borderBottom: "0.5px solid rgba(139,128,201,0.35)",
           flexWrap: "wrap",
         }}
       >
         <QuickActionIcon
-          icon="🧭"
-          label="directions"
+          icon={
+            <img
+              src="/icons/recents-clock.png"
+              alt=""
+              style={{ width: 16, height: 16 }}
+            />
+          }
+          label="Directions"
           onClick={handleDirections}
         />
         <QuickActionIcon
@@ -501,13 +517,13 @@ export default function DetailPanel({
               style={{ width: 16, height: 16 }}
             />
           }
-          label={isSaved ? "saved" : "save"}
+          label={isSaved ? "Saved" : "Save"}
           onClick={handleSaveClick}
         />
         <VoteButtons reportId={report.id} />
         <QuickActionIcon
           icon="🔗"
-          label={shareCopied ? "copied!" : "share"}
+          label={shareCopied ? "Copied!" : "Share"}
           onClick={handleShare}
         />
       </div>
@@ -530,6 +546,8 @@ export default function DetailPanel({
           justifyContent: "space-between",
           alignItems: "flex-start",
           marginBottom: 12,
+          paddingBottom: 12,
+          borderBottom: "1px solid rgba(139,128,201,0.3)",
           gap: 8,
         }}
       >
@@ -540,8 +558,8 @@ export default function DetailPanel({
               fontWeight: 600,
               padding: "3px 10px",
               borderRadius: 20,
-              background: "#E7DBFF",
-              color: "#4A3F7A",
+              background: "rgba(139,128,201,0.18)",
+              color: "#8B80C9",
             }}
           >
             {typeLabels[report.cat_type]}
@@ -568,8 +586,8 @@ export default function DetailPanel({
               height: 34,
               borderRadius: "50%",
               border: "none",
-              background: isSaved ? "#8B80C9" : "#E7DBFF",
-              color: isSaved ? "white" : "#4A3F7A",
+              background: isSaved ? "#8B80C9" : "rgba(139,128,201,0.18)",
+              color: isSaved ? "white" : "#8B80C9",
               fontSize: 14,
               cursor: "pointer",
               display: "flex",
@@ -590,8 +608,8 @@ export default function DetailPanel({
               height: 34,
               borderRadius: "50%",
               border: "none",
-              background: "#E7DBFF",
-              color: "#4A3F7A",
+              background: "rgba(139,128,201,0.18)",
+              color: "#8B80C9",
               fontSize: 13,
               cursor: "pointer",
               display: "flex",
@@ -613,7 +631,7 @@ export default function DetailPanel({
           gap: 8,
           marginBottom: 16,
           paddingBottom: 16,
-          borderBottom: "0.5px solid #E8E6F0",
+          borderBottom: "0.5px solid rgba(139,128,201,0.35)",
           overflowX: "auto",
         }}
       >
@@ -635,7 +653,12 @@ export default function DetailPanel({
             flexShrink: 0,
           }}
         >
-          🧭 directions
+          <img
+            src="/icons/recents-clock.png"
+            alt=""
+            style={{ width: 14, height: 14 }}
+          />{" "}
+          Directions
         </button>
         <VoteButtons reportId={report.id} variant="pill" />
         <RescueActions
@@ -650,7 +673,7 @@ export default function DetailPanel({
         <p
           style={{
             fontSize: 13,
-            color: "#4A3F7A",
+            color: "white",
             marginBottom: 12,
             lineHeight: 1.5,
           }}
@@ -659,8 +682,8 @@ export default function DetailPanel({
         </p>
       )}
 
-      <p style={{ fontSize: 12, color: "#9CA3AF" }}>
-        ✓ last confirmed {timeAgo(report.last_confirmed_at)}
+      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
+        ✓ Last confirmed {timeAgo(report.last_confirmed_at)}
       </p>
     </>
   );
@@ -693,9 +716,9 @@ export default function DetailPanel({
             right: 0,
             height: sheetHeightRef.current || "88vh",
             zIndex: 10005,
-            background: "rgba(255,255,255,0.98)",
+            background: "rgba(26,24,38,0.98)",
             borderRadius: "20px 20px 0 0",
-            boxShadow: "0 -4px 24px rgba(74,63,122,0.18)",
+            boxShadow: "0 -4px 24px rgba(0,0,0,0.4)",
             overflow: "hidden",
             display: "flex",
             flexDirection: "column",
@@ -719,7 +742,7 @@ export default function DetailPanel({
               style={{
                 width: 36,
                 height: 4,
-                background: isDragging ? "#8B80C9" : "#E8E6F0",
+                background: isDragging ? "#8B80C9" : "rgba(139,128,201,0.35)",
                 borderRadius: 2,
                 margin: "0 auto",
                 transition: "background 0.15s ease",
@@ -738,7 +761,7 @@ export default function DetailPanel({
             >
               <img
                 src={report.photo_url}
-                alt="cat"
+                alt="Cat"
                 style={{
                   width: "100%",
                   height: "100%",
@@ -758,7 +781,7 @@ export default function DetailPanel({
                 }}
               >
                 <p style={{ color: "white", fontSize: 11, fontWeight: 500 }}>
-                  🕐 reported {timeAgo(report.created_at)}
+                  🕐 Reported {timeAgo(report.created_at)}
                 </p>
               </div>
             </div>
@@ -797,8 +820,8 @@ export default function DetailPanel({
         style={{
           width: "100%",
           height: "100%",
-          background: "rgba(255,255,255,0.98)",
-          boxShadow: "4px 0 24px rgba(74,63,122,0.15)",
+          background: "rgba(26,24,38,0.98)",
+          boxShadow: "4px 0 24px rgba(0,0,0,0.4)",
           borderRadius: "16px 0 0 0",
           display: "flex",
           flexDirection: "column",
@@ -808,7 +831,7 @@ export default function DetailPanel({
         <div style={{ position: "relative" }}>
           <img
             src={report.photo_url}
-            alt="cat"
+            alt="Cat"
             style={{ width: "100%", height: 180, objectFit: "cover" }}
           />
         </div>
@@ -830,8 +853,8 @@ export default function DetailPanel({
           height: 52,
           borderRadius: "0 12px 12px 0",
           border: "none",
-          background: "white",
-          boxShadow: "2px 0 8px rgba(74,63,122,0.15)",
+          background: "#1A1628",
+          boxShadow: "2px 0 8px rgba(0,0,0,0.35)",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
