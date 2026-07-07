@@ -44,6 +44,9 @@ export default function EditProfileModal({
 
     if (avatarFile) {
       const filename = `${session.user.id}-${Date.now()}.jpg`;
+      if (filename.includes("..")) {
+        throw new Error("Invalid filename");
+      }
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(filename, avatarFile, { upsert: true });

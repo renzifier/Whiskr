@@ -141,36 +141,72 @@ export default function DetailPanel({
   // Human-readable area name — reverse-geocoded from lat/lng via Nominatim
   const [areaName, setAreaName] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function loadArea() {
-      setAreaName(null);
-      try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${report.lat}&lon=${report.lng}&zoom=14`,
-        );
-        const data = await res.json();
-        if (cancelled) return;
-        const addr = data.address ?? {};
-        const area =
-          addr.suburb ||
-          addr.village ||
-          addr.town ||
-          addr.city_district ||
-          addr.city ||
-          addr.county ||
-          data.display_name?.split(",")[0] ||
-          null;
-        setAreaName(area);
-      } catch {
-        if (!cancelled) setAreaName(null);
-      }
-    }
-    loadArea();
-    return () => {
-      cancelled = true;
-    };
-  }, [report.lat, report.lng]);
+ useEffect(() => {
+   let cancelled = false;
+   async function loadArea() {
+     setAreaName(null);
+     try {
+       const res = await fetch(
+         buildValidatedUrl(
+           "https://nominatim.openstreetmap.org/reverse",
+           report.lat,
+           report.lng,
+         ),
+       );
+      function buildValidatedUrl(
+        baseUrl: string,
+        lat: number | string,
+        lon: number | string,
+      ): string {
+        try {
+          const url = new URL(baseUrl);
+
+          // Normalize to string
+          const latStr = String(lat);
+          const lonStr = String(lon);
+
+          // Validate latitude and longitude parameters
+          if (!/^-?[0-9]+(?:\.[0-9]+)?$/.test(latStr)) {
+            throw new Error("Invalid parameter");
+          }
+          if (!/^-?[0-9]+(?:\.[0-9]+)?$/.test(lonStr)) {
+            throw new Error("Invalid parameter");
+          }
+
+          // Add query parameters
+          url.searchParams.set("format", "json");
+          url.searchParams.set("lat", latStr);
+          url.searchParams.set("lon", lonStr);
+          url.searchParams.set("zoom", "14");
+
+           return url.href;
+         } catch {
+           throw new Error("Invalid URL");
+         }
+       }
+
+       const data = await res.json();
+       if (cancelled) return;
+       const addr = data.address ?? {};
+       const area =
+         addr.suburb ||
+         addr.village ||
+         addr.town ||
+         addr.city_district ||
+         addr.city ||
+         addr.county ||
+         data.display_name?.split(",")[0] ||
+         null;
+       setAreaName(area);
+     } catch {
+       if (!cancelled) setAreaName(null);
+     }
+   }
+   loadArea();
+   return () => {
+     cancelled = true;
+   };
+ }, [report.lat, report.lng]);
 
   // --- Mobile bottom sheet: transform-based drag + snap animation ---
   const COLLAPSED_RATIO = 0.45;
