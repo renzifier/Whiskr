@@ -149,6 +149,39 @@ export default function WhiskrMap({
       window.removeEventListener("rescue-completed", handleRescueCompleted);
   }, []);
 
+  // Volunteer accept/release changes a report's status server-side, but the
+  // caller has no guarantee the realtime broadcast lands before they expect
+  // to see it — so pull that one row immediately instead of waiting on it.
+  useEffect(() => {
+    async function handleReportRefresh(e: Event) {
+      const { reportId } = (e as CustomEvent).detail;
+      const { data } = await supabase
+        .from("public_reports")
+        .select("*")
+        .eq("id", reportId)
+        .single();
+      if (!data) return;
+
+      const updated = data as Report;
+      setReports((prev) => {
+        const exists = prev.some((r) => r.id === updated.id);
+        if (exists) {
+          return prev.map((r) =>
+            r.id === updated.id ? { ...r, ...updated } : r,
+          );
+        }
+        return [...prev, updated];
+      });
+
+      if (selectedReportRef.current?.id === updated.id) {
+        onSelectReport({ ...selectedReportRef.current, ...updated } as Report);
+      }
+    }
+    window.addEventListener("report-refresh", handleReportRefresh);
+    return () =>
+      window.removeEventListener("report-refresh", handleReportRefresh);
+  }, []);
+
   useEffect(() => {
     selectedReportRef.current = selectedReport;
   }, [selectedReport]);

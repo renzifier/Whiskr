@@ -205,6 +205,11 @@ export default function RescueActions({
       setError(data?.error ?? "Failed to volunteer for this rescue");
     } else {
       setContact(data.contact);
+      window.dispatchEvent(
+        new CustomEvent("report-refresh", {
+          detail: { reportId: report.id },
+        }),
+      );
     }
     setLoading(false);
   }
@@ -233,6 +238,11 @@ export default function RescueActions({
   async function handleRelease() {
     setLoading(true);
     await supabase.rpc("release_rescue", { p_report_id: report.id });
+    window.dispatchEvent(
+      new CustomEvent("report-refresh", {
+        detail: { reportId: report.id },
+      }),
+    );
     setLoading(false);
   }
 
