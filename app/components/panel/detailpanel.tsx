@@ -161,6 +161,15 @@ export default function DetailPanel({
           try {
             const url = new URL(baseUrl);
 
+            // Protocol + host checks
+            const allowedDomains = ["nominatim.openstreetmap.org"];
+            if (!allowedDomains.includes(url.hostname)) {
+              throw new Error("Invalid host");
+            }
+            if (!["http:", "https:"].includes(url.protocol)) {
+              throw new Error("Invalid protocol");
+            }
+
             // Normalize to string
             const latStr = String(lat);
             const lonStr = String(lon);
